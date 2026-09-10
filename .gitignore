@@ -1,0 +1,16 @@
+# Python / tooling
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+
+# Raw Kaggle data (large; reviewers use the committed subsample in data/processed/)
+data/raw/*
+!data/raw/.gitkeep
+
+# Assignment brief (not ours to redistribute)
+*.pdf

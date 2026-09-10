@@ -1,0 +1,53 @@
+# Every tunable lives here. To switch LLM provider, change only models.*.name
+# (LiteLLM "<provider>/<model>" strings) and put that provider's API key in .env.
+
+brand: null               # chosen in Phase 1 (EDA)
+seed: 42
+codebook_version: v1
+
+models:
+  # Examples: anthropic/claude-haiku-4-5, anthropic/claude-sonnet-5, openai/<model>,
+  #           gemini/<model>, ollama/<model>
+  # temperature: null = don't send it. Some models reject sampling params (claude-sonnet-5 and
+  # claude-opus-5 return a 400). Reproducibility comes from the LLM cache, not from temperature.
+  # reasoning_effort: null = provider default. disable | low | medium | high set Gemini's
+  # thinking budget, which is spent out of max_tokens. Only part of the cache key when set.
+  # timeout: seconds per request (LiteLLM's own default is 6000).
+  agent:
+    name: gemini/gemini-2.5-flash
+    temperature: 0
+    max_tokens: 1024
+    reasoning_effort: null
+    timeout: 60
+  judge:                  # keep different from the agent model (self-preference bias)
+    name: gemini/gemini-3.5-flash   # free tier; switch to gemini/gemini-2.5-pro once billing is enabled
+    temperature: null
+    max_tokens: 4096
+    reasoning_effort: null
+    timeout: 120
+
+embedding_model: sentence-transformers/all-MiniLM-L6-v2
+
+data:
+  raw_csv: data/raw/twcs.csv
+  records: data/processed/records.parquet
+  split_date: null        # set in Phase 2
+
+retrieval:
+  k: 5
+
+thresholds:               # placeholders; tuned on dev only (Phase 7)
+  intent_confidence: 0.6
+  retrieval_similarity: 0.5
+
+cache:
+  path: data/cache/llm_cache.sqlite
+
+results_store:
+  path: results/runtime_outputs.jsonl
+
+# Optional production adapters (Phase 12). The eval profile ignores this whole section.
+integrations:
+  store: jsonl            # jsonl | postgres
+  cache: sqlite           # sqlite | redis
+  escalation_sink: none   # none | log | slack

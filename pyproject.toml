@@ -1,0 +1,51 @@
+[project]
+name = "hiver-support-agent"
+version = "0.1.0"
+description = "Twitter customer-support agent (intent, grounded reply, escalation) with an evaluation harness."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=16",
+    "numpy>=1.26",
+    "scikit-learn>=1.5",
+    "sentence-transformers>=3.0",
+    "torch>=2.3",
+    "litellm>=1.50",
+    "langgraph>=0.2",
+    "pydantic>=2.7",
+    "pyyaml>=6",
+    "python-dotenv>=1.0",
+    "tqdm>=4.66",
+    "matplotlib>=3.8",
+    "pytest>=8",
+]
+
+[project.optional-dependencies]
+# Optional production adapters (Phase 12). Never needed for evaluation.
+integrations = [
+    "psycopg[binary]>=3.2",
+    "redis>=5",
+    "slack_sdk>=3.27",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "langsmith>=0.1",
+]
+# Only needed to download/regenerate data from the raw Kaggle CSV.
+data = [
+    "kaggle>=1.6",
+]
+
+# CPU-only torch on Linux/Windows (the default Linux wheel pulls ~2GB of CUDA libs
+# we never use). macOS wheels are CPU-only already, so it uses PyPI there.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
