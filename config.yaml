@@ -31,7 +31,7 @@ embedding_model: sentence-transformers/all-MiniLM-L6-v2
 data:
   raw_csv: data/raw/twcs.csv
   records: data/processed/records.parquet
-  split_date: null        # set in Phase 2
+  split_date: "2017-11-15"  # threads whose root tweet is earlier -> train (~69% of exchanges), else holdout
 
 retrieval:
   k: 5

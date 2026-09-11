@@ -5,7 +5,7 @@ classifies each customer tweet's intent, drafts a reply grounded in how the bran
 before, and decides whether to auto-handle or escalate (with a reason). The repo also contains
 the evaluation harness that measures how far the agent can be trusted.
 
-> **Status:** Phases 0–1 complete. Brand: **XboxSupport**. See [Build progress](#build-progress).
+> **Status:** Phases 0–2 complete. Brand: **XboxSupport**. See [Build progress](#build-progress).
 
 ## Quickstart
 
@@ -28,6 +28,34 @@ Then put that provider's key in `.env`. No code changes are needed.
 
 Every LLM call is cached in `data/cache/llm_cache.sqlite` (committed). With `LLM_OFFLINE=1`,
 runs use only that cache, so results reproduce without an API key.
+
+## Data pipeline
+
+`uv run python -m src.dataprep.build` (or `make sample`) rebuilds the committed
+`data/processed/records.parquet` from `data/raw/twcs.csv` in about 40 s. It never modifies the
+raw file.
+
+- **Unit.** One exchange = one customer message plus XboxSupport's reply. Tweets split across
+  several posts are merged on both sides, and earlier turns are kept as `context`. There are
+  18,712 usable exchanges.
+- **Splits.** Assigned per thread, by time (`data.split_date: 2017-11-15`):
+  - `train`: 12,792
+  - `holdout`: 5,803 (Phase 5 samples dev/golden from it)
+  - `excluded`: 117
+
+  Read the records only through `src/dataprep/loaders.py`.
+- **Weak supervision.** `weak_outcome`, `outcome_confidence` and `brand_escalation_evidence` are
+  heuristics. They exist only on train and are never evaluation targets.
+- **Grounding corpus.** Only `retrieval_eligible` rows (train + substantive reply).
+  `substantive` is a retrieval heuristic, not ground truth: it was about 60% precise in a hand
+  sample, and it is never an evaluation target.
+- **Held-out template reuse.** 52% of holdout DM-deflection replies reuse a reply template that
+  also occurs in train. Reply-quality results must therefore be sliced by
+  `reply_template_in_train`.
+
+[`results/phase2_data_report.md`](results/phase2_data_report.md) documents every cleaning
+decision, the funnel, the leakage checks and the data dictionary. The hand-inspected samples are
+in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 
 ## Repo map
 
@@ -52,7 +80,7 @@ runs use only that cache, so results reproduce without an API key.
 
 - [x] Phase 0: setup, ports, provider-agnostic LLM layer
 - [x] Phase 1: EDA & brand selection (XboxSupport; [`results/eda.md`](results/eda.md), [`results/brand_validation.md`](results/brand_validation.md))
-- [ ] Phase 2: ingestion, cleaning, splits, weak outcome labels
+- [x] Phase 2: ingestion, cleaning, splits, weak outcome labels ([`results/phase2_data_report.md`](results/phase2_data_report.md))
 - [ ] Phase 3: intent taxonomy & escalation policy (codebook)
 - [ ] Phase 4: typed contracts
 - [ ] Phase 5: dev + golden labelling

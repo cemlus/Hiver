@@ -58,3 +58,68 @@ comes from. It will be trimmed to the best 10–15 for submission.
     T-Mobile's "substantive" replies were really DM invitations.
   - The raw CSV is read with pandas' C engine: 106,891 tweets contain quoted newlines that
     pyarrow's reader rejects.
+- **[P2] One exchange = one merged customer message + one merged brand reply, with context.**
+  - Split tweets are merged on both sides: the brand continuing itself within 15 min, and the
+    customer's own consecutive tweets. Parts are ordered by time, then reply-chain depth, then
+    their `1/2` markers.
+  - Context is the parent chain as logical turns: the opener plus the last 2 turns, and no turn
+    more than 7 days old. A split brand reply is always shown whole.
+  - Result: 18,712 usable exchanges, 0.9% more than the Phase 1 funnel.
+
+  Evidence: `results/phase2_data_report.md`, `results/reconstruction_samples.md`.
+- **[P2] Strict thread-level time split at 2017-11-15.**
+  - Threads starting on or after that date go to holdout. Earlier threads go to train, except
+    exchanges written after the date in revived threads, which are `excluded` (117).
+  - Every train exchange precedes every holdout thread, and no thread is in both. Both rules
+    are tested.
+  - The split is 69/31. The holdout is the final ~2.5 weeks, so some topic drift is real.
+- **[P2] `substantive` is a retrieval heuristic, not ground truth.** It decides only which train
+  replies may enter the grounding corpus (`retrieval_eligible`: 2,711 rows).
+  - It is a keyword rule: a guidance cue in a sentence that isn't a DM request, in a reply that
+    isn't wholly canned.
+  - Hand-sample precision is about 60%, because clarifying questions and status updates that say
+    "try", "update" or "steps" slip in.
+  - It must never be an evaluation target or a reply-quality label, and retrieval must re-rank
+    rather than trust it.
+- **[P2] Weak labels are train-only and carry a confidence; customer cues are features.**
+  - `weak_outcome`, `outcome_confidence`, `next_customer_text` and `brand_escalation_evidence`
+    use the future or the reference reply, so they are null outside train (tested).
+  - `customer_escalation_signals` come from the model's input and are kept on every split.
+- **[P2] Held-out DM replies heavily reuse training templates.** Customer messages barely
+  overlap: only 5 holdout messages have a train near-duplicate (char TF-IDF cosine ≥ 0.95), and
+  those are barred from dev and golden. Brand replies are different:
+
+  | Holdout reply type | Reuse a train template |
+  |---|---|
+  | DM deflection | 690 of 1,331 (52%) |
+  | Other | 752 of 3,223 (23%) |
+  | Substantive | 66 of 1,249 (5%) |
+
+  So scoring a drafted reply against the historical one rewards copying a canned DM template.
+  Reply-quality results must be sliced by `reply_template_in_train`, and a copied DM template
+  never counts as a good grounded answer.
+- **[P2] Hand inspection of reconstructed exchanges found six bugs the tests had missed.** Each
+  fix below has a unit test. Evidence: `results/reconstruction_samples.md`.
+- **[P2] Bug 1: split parts posted in the same second came out of order.** Decision: order parts
+  by time, then reply-chain depth, then their `1 ^JL` / `2/2` marker. Misordered merged replies
+  fell from 108 to 9 of 3,604. The 9 left keep time order: the brand posted part 2 first, or
+  re-posted a cut-off tweet.
+- **[P2] Bug 2: context showed only half of a split brand reply.** The customer had answered part
+  2, and part 1 wasn't on the parent chain. Decision: a brand turn in context always shows the
+  whole merged reply. 56 of 6,218 brand turns are still fragments, where part 1 isn't anchored.
+- **[P2] Bug 3: replies to brand announcements counted as follow-ups.** Decision: a follow-up
+  must answer a brand *reply*. Answering a brand tweet that replies to nobody is a first contact,
+  with the announcement kept as context. About 900 exchanges were reclassified.
+- **[P2] Bug 4: revived threads.** A 2017 message answering a 2014 tweet carried 2014 context,
+  and because its thread started early it landed in train despite being written after the split
+  date. Decisions: context turns more than 7 days older than the message are dropped (163
+  contexts cut), and exchanges written after the split date in earlier threads are `excluded`
+  (117).
+- **[P2] Bug 5: DM requests counted as substantive** ("…so we can have you try a few steps",
+  "Can you DM us what you see when you try…"). Decision: guidance must sit in a sentence that
+  isn't a DM request, and phrases about the customer's own attempts don't count. Substantive
+  replies that also ask for a DM fell from 488 to 226.
+- **[P2] Bug 6: sign-offs glued to the text** (`details?^EZ`, `.^IS`) stayed in clean replies
+  after a fix meant to protect "Wi-Fi". The integrity test caught it during the same review.
+  Decision: a `^` tag needs no space before it; `*`, `/` and `-` tags still do. Leftover markers
+  fell from 0.57% to below the test's 0.5% limit.

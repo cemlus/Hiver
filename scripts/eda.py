@@ -14,7 +14,7 @@ metrics. Stage 2 looks at a few candidate brands in depth: thread structure, fol
 outcome signals, canned replies, frequent customer terms, and sample threads.
 
 Every text metric here is a keyword heuristic. They are estimates for choosing a brand,
-never labels.
+never labels. The patterns and loaders are shared with the data pipeline (src/dataprep).
 """
 from __future__ import annotations
 
@@ -30,6 +30,10 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.config import load_config, resolve  # noqa: E402
+from src.dataprep.raw import add_language, add_threads, load_raw  # noqa: E402
+from src.dataprep.text import (  # noqa: E402
+    ACTION, DM_REDIRECT, MENTION, NEGATIVE, POSITIVE, SIGNOFF, SPLIT, URL, template_key,
+)
 
 TOP_N = 15                # brands screened in stage 1
 N_CANDIDATES = 4          # brands analysed in stage 2 (unless --candidates is given)
@@ -38,52 +42,6 @@ MIN_REPLIES = 20_000      # ...and have enough brand replies
 CANNED_MIN_REPEATS = 5    # a normalised reply seen this often (per brand) counts as canned
 N_SAMPLE_BRANDS = 2       # strongest candidates that get sample threads in eda.md
 N_SAMPLE_THREADS = 8
-
-# Patterns run on lower-cased text. Non-capturing groups and no lookarounds, so they behave
-# the same under Python's `re` and pyarrow's RE2 (pandas may use either).
-URL = r"https?://\S+"
-MENTION = r"@\w+"
-DM_REDIRECT = (
-    r"\b(?:dm|dms|dm'd|d\.m|direct messages?|private messages?|pm us|message us|"
-    r"send us a (?:note|message)|reach out (?:to us )?(?:via|in|through|by) (?:dm|direct|private))\b"
-)
-# Troubleshooting / guidance cues. Deliberately excludes words that mostly appear in DM
-# redirects ("click here to DM", "upgrade options", "check your account").
-ACTION = (
-    r"\b(?:restart|restarting|reboot|re-?install|uninstall|update|updating|sign (?:out|in)|"
-    r"sign back in|log ?(?:out|in)|logging (?:out|in)|clear (?:the |your )?(?:cache|data|cookies|history)|"
-    r"settings|go to|tap|toggle|turn (?:it )?(?:off|on)|reset|resetting|force (?:quit|close|stop)|"
-    r"power cycle|unplug|delete (?:the )?app|remove|try|tried|make sure|check (?:that|if)|steps|"
-    r"enable|disable|head to|navigate|open the|should (?:now )?be (?:able|working|fixed)|"
-    r"you can (?:find|change|set|use|add|cancel|manage|vote|check))\b"
-)
-POSITIVE = (
-    r"\b(?:thanks|thank you|thx|ty|cheers|appreciate it|worked|works now|working now|fixed|"
-    r"sorted|resolved|solved|perfect|awesome|that did it|all good)\b"
-)
-NEGATIVE = (
-    r"\b(?:still|not working|doesn't work|didn't work|does not work|did not work|won't|"
-    r"same (?:issue|problem)|(?:happened|happening|doing it|did it|broke|broken) again|"
-    r"already (?:tried|did|done)|no luck|useless|ridiculous|worst|terrible|no response|"
-    r"no reply|nobody|never)\b"
-)
-EN_STOP = (
-    r"\b(?:the|to|my|you|your|and|for|this|that|with|have|has|can|not|why|how|what|when|just|"
-    r"get|got|please|thanks|help|been|was|are|will|would|still|any|of|is|it|on|me|i'm|it's|"
-    r"don't|doesn't|can't)\b"
-)
-FOREIGN_STOP = (
-    r"\b(?:que|por|para|los|las|el|una|pero|muy|estoy|tengo|gracias|hola|porque|cuando|est|pas|"
-    r"les|des|avec|pour|merci|bonjour|und|nicht|ist|mit|ich|das|der|não|você|obrigado|uma|"
-    r"mais|het|een|niet|mijn)\b"
-)
-# Cyrillic, Arabic, Thai, Japanese kana, CJK, Hangul. A plain (non-raw) string, so Python turns
-# the escapes into literal characters that both regex engines accept.
-FOREIGN_SCRIPT = "[Ѐ-ӿ؀-ۿ฀-๿぀-ヿ一-鿿가-힯]"
-# Agent sign-offs at the end of a reply (URLs removed first): "^JK", "*RickK", "/NS", "-Sam".
-SIGNOFF = r"(?:[\^\*/] ?[a-z]{1,15}(?: [a-z]{1,15})?|[-–~] ?[a-z]{2,15})\s*$"
-# One reply split over several tweets: "1/2", a leading "2: ", or a bare trailing " 1".
-SPLIT = r"(?:\b[1-4]/[2-4]\b|^(?:@\w+ )+[1-4]: |\s[1-4]\s*$)"
 
 STOPWORDS = set(
     """a about above after again all also am an and any are as at be because been before being
@@ -95,58 +53,6 @@ STOPWORDS = set(
     why will with won't would you you're your yours amp one still even really why what's let
     back need know like help want going since been way hey hi guys""".split()
 )
-
-
-# --------------------------------------------------------------------------- loading
-
-def load(path: Path) -> pd.DataFrame:
-    # The C engine, not pyarrow: some tweets contain newlines inside quoted fields, which
-    # pyarrow's CSV reader rejects ("Expected 7 columns, got 4").
-    df = pd.read_csv(path, dtype={"author_id": str, "text": str, "response_tweet_id": str})
-    df["created_at"] = pd.to_datetime(df["created_at"], format="%a %b %d %H:%M:%S %z %Y", utc=True)
-    df["text"] = df["text"].fillna("")
-    df["lower"] = df["text"].str.lower()
-    return df
-
-
-def add_threads(df: pd.DataFrame) -> pd.DataFrame:
-    """Give every tweet its parent's row position, the parent's author and its thread root.
-
-    A thread is the tree of tweets linked by in_response_to_tweet_id. The root is the first
-    ancestor present in the dataset. "Orphans" reply to a tweet that isn't in the dataset.
-    """
-    ids = pd.Index(df["tweet_id"])
-    parent = ids.get_indexer(df["in_response_to_tweet_id"])      # -1 = no parent in the data
-    root = np.where(parent >= 0, parent, np.arange(len(df)))
-    for _ in range(64):                                            # pointer jumping
-        nxt = root[root]
-        if np.array_equal(nxt, root):
-            break
-        root = nxt
-    authors = df["author_id"].to_numpy(dtype=object)
-    df["parent_pos"] = parent
-    df["parent_author"] = np.where(parent >= 0, authors[parent], None)
-    df["root"] = df["tweet_id"].to_numpy()[root]
-    df["orphan"] = df["in_response_to_tweet_id"].notna().to_numpy() & (parent < 0)
-    return df
-
-
-def add_language(df: pd.DataFrame) -> pd.DataFrame:
-    """Estimate the language of customer tweets: "en", "other" or "undetermined" (too short,
-    no function words). Counting function words is crude but needs no extra dependency."""
-    inbound = df["inbound"].to_numpy()
-    body = (
-        df.loc[inbound, "lower"]
-        .str.replace(URL, " ", regex=True)
-        .str.replace(MENTION, " ", regex=True)
-    )
-    en = body.str.count(EN_STOP)
-    fx = body.str.count(FOREIGN_STOP)
-    script = body.str.contains(FOREIGN_SCRIPT, regex=True)
-    lang = np.where(script | (fx > en), "other", np.where(en >= 1, "en", "undetermined"))
-    df["lang"] = None
-    df.loc[inbound, "lang"] = lang
-    return df
 
 
 def pct(mask) -> float:
@@ -168,13 +74,7 @@ def brand_replies(df: pd.DataFrame, brands) -> pd.DataFrame:
     out["signoff"] = body.str.contains(SIGNOFF, regex=True)
     unsigned = body.str.replace(SIGNOFF, " ", regex=True)
     out["split"] = unsigned.str.contains(SPLIT, regex=True)
-    # The reply's template: no handles, URLs, sign-offs, digits or punctuation.
-    out["norm"] = (
-        unsigned.str.replace(MENTION, " ", regex=True)
-        .str.replace(r"[^a-z' ]+", " ", regex=True)
-        .str.replace(r"\s+", " ", regex=True)
-        .str.strip()
-    )
+    out["norm"] = template_key(lower)          # the reply's template
     repeats = out.groupby(["author_id", "norm"])["norm"].transform("size")
     out["canned"] = (repeats >= CANNED_MIN_REPEATS) & (out["norm"] != "")
     out["substantive"] = out["action"] & ~out["canned"]
@@ -445,7 +345,7 @@ def main() -> None:
     results = resolve("results")
 
     print(f"loading {raw} ...")
-    df = add_language(add_threads(load(raw)))
+    df = add_language(add_threads(load_raw(raw)))
     is_out = ~df["inbound"]
     last = df["created_at"].max()
     facts = {

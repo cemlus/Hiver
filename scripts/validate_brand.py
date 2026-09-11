@@ -21,30 +21,19 @@ import pandas as pd
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 
-from eda import (  # scripts/eda.py (Phase 1); also puts the repo root on sys.path
-    ACTION, DM_REDIRECT, MANUAL_END, MANUAL_START, MENTION, NEGATIVE, POSITIVE, URL,
-    add_language, add_threads, brand_replies, load, md_table, pct,
-)
+from eda import MANUAL_END, MANUAL_START, brand_replies, md_table, pct  # also puts the repo root on sys.path
 from src.config import load_config, resolve  # noqa: E402
+from src.dataprep.raw import add_language, add_threads, load_raw as load  # noqa: E402
+from src.dataprep.text import (  # noqa: E402
+    ACTION, DM_LOGISTICS, DM_REDIRECT, FIX_CONFIRMED, FIX_NEGATED, MENTION, NEGATIVE, POSITIVE, URL,
+)
 
 CONTINUATION_WINDOW = pd.Timedelta(minutes=15)  # brand tweet replying to its own tweet = split part
 MIN_WORDS = 3               # customer tweets with fewer alphabetic words carry no issue
 N_CLUSTERS = 15
 GOLDEN_RANDOM_SLICE = 120   # random part of the planned golden set (PLAN.md Phase 5)
 
-# Customer tweets that only manage the DM hand-off ("DM sent", "just messaged you").
-DM_LOGISTICS = r"\b(?:dm|dms|dm'd|messaged|sent you|sent it|sent a|just sent)\b"
-# Stronger than "thanks": the customer says the problem is gone.
-FIX_CONFIRMED = (
-    r"\b(?:worked|it works|works now|working now|fixed|sorted|resolved|solved|that did it|"
-    r"did the trick|all good)\b"
-)
-# Negated or hoped-for fixes that FIX_CONFIRMED would otherwise catch: "nothing has worked",
-# "none of these worked", "didnt worked", "hopefully it works", "see if it can be resolved".
-FIX_NEGATED = (
-    r"(?:nothing|none|not|n't|didnt|dont|hope\w*|see if|if it|if that)\W+(?:\w+\W+){0,3}"
-    r"(?:work\w*|fix\w*|resolv\w*|sort\w*|solv\w*)"
-)
+# DM_LOGISTICS, FIX_CONFIRMED and FIX_NEGATED are shared with the pipeline: src/dataprep/text.py.
 
 # ~10 draft intents as keyword rules, checked in this order (first match wins). A rough
 # sizing aid for Phase 3, not the codebook.

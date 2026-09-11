@@ -274,6 +274,34 @@ _The original Phase 1 plan, kept for the record:_
 
 **Exit:** brand chosen and written into `config.yaml`; 5+ data-quality issues named; deflection rate known. **Decision log:** brand rationale.
 
+### Phase 2 — Ingestion, cleaning, splits, weak outcome labels ✅ DONE (2026-09-11)
+**Outcome.** Details are in `results/phase2_data_report.md`, `results/reconstruction_samples.md`
+and the `[P2]` entries in `DECISIONS.md`.
+
+- **Code:** `src/dataprep/{text,raw,exchanges,weak_signals,splits,loaders,build}.py`, run with
+  `python -m src.dataprep.build`. The Phase 1 scripts now import the shared patterns and loaders,
+  and their outputs were verified byte-identical.
+- **Data:** `records.parquet` holds 18,712 exchanges: train 12,792, holdout 5,803 (5,798
+  eval-eligible) and excluded 117. `split_date` is 2017-11-15. 36 reconstructed samples were
+  inspected by hand across two rounds.
+
+**Deviations from the plan**
+- File names: `weak_signals.py` instead of `weak_outcomes.py`, and `exchanges.py` + `build.py`
+  instead of `ingest.py`.
+- Split values are `train` / `holdout` / `excluded`. Dev and golden are written in Phase 5.
+- Weak outcomes are `resolved` / `unresolved` / `acknowledged` / `deflected` / `unknown`, plus
+  `outcome_confidence`. The plan had positive / deflected / unresolved / unknown.
+
+**Carry forward into later phases**
+- **Phase 3:** build the codebook from train only. Include a "vague / needs more info" intent and
+  follow-up rules, and read `context` for follow-ups.
+- **Phase 5:** sample dev and golden by thread from `loaders.eval_pool()`.
+- **Phase 7:** retrieve from `loaders.retrieval_corpus()`. The `substantive` label is only about
+  60% precise, so re-rank and dedupe templates.
+- **Phase 9:** slice reply-quality metrics by `reply_template_in_train`.
+
+_The original Phase 2 plan, kept for the record:_
+
 ### Phase 2 — Ingestion, cleaning, splits, weak outcome labels (~3h)
 `src/dataprep/ingest.py`, `splits.py`, `weak_outcomes.py`, `loaders.py`; `make sample`.
 1. Filter to the brand's threads and rebuild the chains via `in_response_to_tweet_id` / `response_tweet_id`.
