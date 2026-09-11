@@ -123,3 +123,45 @@ comes from. It will be trimmed to the best 10–15 for submission.
   after a fix meant to protect "Wi-Fi". The integrity test caught it during the same review.
   Decision: a `^` tag needs no space before it; `*`, `/` and `-` tags still do. Leftover markers
   fell from 0.57% to below the test's 0.5% limit.
+- **[P3] Taxonomy v1 is frozen: 11 primary intents and 4 conversation states.**
+  - It was curated by hand around distinct reply and escalation strategies. Clustering was only
+    exploratory evidence.
+  - The codebook (`data/codebook.md`) is generated from `data/taxonomy/taxonomy_v1.yaml`, and
+    `tests/test_taxonomy_frozen.py` pins the names. Changing them means a new version and
+    relabelling.
+- **[P3] Conversation state is scored separately from intent.** Closing and social messages carry
+  no intent and are scored as state accuracy, so easy "thanks!" messages can't inflate intent
+  scores. S1: `acknowledgement_closing` requires that no unresolved issue remains. "Will try
+  tonight" and "I'll get back to you" are `issue_followup`.
+- **[P3] Exactly one primary intent is scored.** T0 picks it for multi-issue messages: the higher
+  default risk wins, and ties go to the issue mentioned first. `secondary_intents`, `subtype` and
+  `event_tag` are internal and never scored.
+- **[P3] v1 merges.** `software_game_app` and `entitlements_subscriptions_codes` stay merged, with
+  internal subtypes. `product_info_feedback` stays merged. Controllers stay in `hardware_devices`.
+  `purchases_billing_orders` stays separate because it always escalates.
+- **[P3] Risk and escalation are an overlay, not intents.** Hacked accounts, anger and threats are
+  risk rules applied on top of any intent. `account_access_profile` has default risk medium, not
+  high, so general how-to questions can still be auto-handled.
+- **[P3] The escalation policy stays draft until dev calibration.** 40 dev items (16 random + 24
+  targeted at the six behaviours in the codebook) were drawn blind from the holdout. A human
+  labels them without model pre-fill. The golden set is not sampled until the escalation policy
+  is also frozen, and it must exclude every dev thread.
+- **[P3] Dev item D12 (`2802886`) is Portuguese and stays in the dev set.** It got past the
+  heuristic language filter. Its English function words ("of", "the") come from the game title
+  *Symphony of the Night*, so they tie the Portuguese ones ("não", "por") at 2–2, and a tweet is
+  dropped only when the foreign count is strictly higher.
+  - D12 is not redrawn: removing inconvenient items after the draw would bias the dev set.
+  - It is labelled per the codebook like any other item, and shows that non-English tweets reach
+    the eval pool. The golden set will get the same handling and be sliced by language.
+- **[P3] The 150-row coding sample is discovery evidence, not gold.** It is from train, coded by
+  one person while drafting, so it can never enter dev or golden.
+- **[P3] Evaluation metrics were fixed before any labels were collected:**
+  - state accuracy and macro-F1
+  - intent macro-F1 conditional on intent-bearing gold states, plus per-intent F1 and a confusion
+    matrix
+  - escalation precision and recall, plus must-escalate recall
+  - joint routing correctness
+- **[P3] Temporal risk is recorded, not hidden.** In the discovery sample, many intents lean on
+  train-period events: 5 of 7 purchases cases (the Friday the 13th sale, One X pre-orders), and 5
+  of 12 connectivity and 5 of 14 entitlements cases. Golden results will be sliced by event-tied
+  vs not.

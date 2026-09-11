@@ -317,6 +317,38 @@ _The original Phase 2 plan, kept for the record:_
 
 **Exit:** regenerates from the raw CSV in minutes; 20 spot-checks look right; split tests pass. **Decision log:** unit of prediction; time-based per-thread split; the outcome heuristic is weak supervision.
 
+### Phase 3 — Codebook: intent taxonomy + escalation policy
+**Status (2026-09-11):** taxonomy ✅ FROZEN (v1); escalation policy DRAFT until dev calibration.
+
+**Outcome**
+- Codebook `data/codebook.md` and evidence `results/taxonomy/proposal.md` are both rendered from
+  `data/taxonomy/taxonomy_v1.yaml` by `scripts/taxonomy_explore.py render`.
+- **4 conversation states**: `new_issue`, `issue_followup`, `acknowledgement_closing`,
+  `social_offtopic`. The last two carry no intent.
+- **11 primary intents**: connectivity, install/update, hardware (controllers inside),
+  software/game/app, account, purchases/billing/orders, entitlements/subscriptions/codes,
+  enforcement, product info/feedback, support-process complaint, needs_more_context.
+- **Deterministic rules**: S1–S2 settle the state (S1: closing only if no unresolved issue
+  remains), T0 picks the primary intent, T1–T11 settle between intents, T12 comes last.
+- **Risk and escalation** are a separate overlay layer.
+- **Internal-only fields**: `secondary_intents`, `subtype`, `event_tag`.
+- The 150-row coding sample (`data/taxonomy/discovery_sample_coding.csv`) is discovery evidence
+  from train, not gold.
+- The name lists are pinned by `tests/test_taxonomy_frozen.py`.
+- **Dev set drawn** (40 holdout items, `scripts/sample_dev.py`) and waiting for human labels. It
+  is kept exactly as drawn. D12 is Portuguese and got past the heuristic language filter: the
+  English words came from a game title and tied 2–2. It is labelled, not redrawn.
+
+**Carry forward into later phases**
+- **Phase 4 contracts:** `Intent` has 11 values; add `ConversationState` (4) and `RiskLevel` (3).
+  `GoldenExample` gets `conversation_state`, a nullable `intent`, `risk_level`, `escalate`,
+  `reason_code`, plus internal `secondary_intents`, `subtype` and `event_tag`. `AgentOutput`
+  predicts state, intent and escalation.
+- **Phase 5:** dev is drawn early (see below). Golden waits for the escalation freeze.
+- **Phase 9:** metrics as listed under Phase 9.
+
+_The original Phase 3 plan, kept for the record:_
+
 ### Phase 3 — Codebook: intent taxonomy + escalation policy (~3h, train only)
 1. **Open coding (primary view):** hand-read about 150 random train messages.
 2. **Exploratory clustering (secondary view):** `src/dataprep/taxonomy_explore.py` embeds ~5k messages, runs KMeans with k≈20–30, and has the LLM summarise each cluster from 15 samples. Output goes to `results/taxonomy_exploration.md` as **notes, never labels**.
@@ -346,6 +378,19 @@ _The original Phase 2 plan, kept for the record:_
 **Exit:** tests pass; baselines, agent and eval import types only from `src/contracts`.
 
 ### Phase 5 — Dev + golden labelling (~4h)
+**Revised order (2026-09-11):**
+1. **Dev drawn first.** `scripts/sample_dev.py` drew 40 holdout items, one per thread and all
+   eval-eligible: 16 random plus 24 targeted (4 each: strong anger, repeat contact,
+   account-specific, vague/low confidence, after a clarification, repair/replacement). They are in
+   a blind sheet, `data/golden/dev_labeling_sheet.csv`, with `dev_sample_key.csv` recording each
+   item's slice and thread.
+2. **A human labels dev** with the codebook, including the cue columns. No model pre-fill.
+3. **Calibrate escalation on dev.** Compare the draft combination rules with the labeller's
+   decisions, adjust, record the changes in DECISIONS, then **freeze the escalation policy**.
+4. **Only then sample the golden set (200) from the holdout, excluding every dev thread.** Label
+   it and lock it with `golden.lock`.
+
+_Original Phase 5 text:_
 1. Sample from the post-split pool:
    - golden: 120 random + 80 stratified (rare intents, anger, follow-ups, multi-intent, sarcasm)
    - dev: 40 random
@@ -398,6 +443,20 @@ Tests: `tests/test_core.py` (`FakeLLM`) and `tests/test_core_no_framework.py` (a
 - `tests/test_graph.py`: the handoff path, the retry-once path, and graph output == a sequential core composition.
 
 ### Phase 9 — Eval harness + LLM judge + human agreement (~4h)
+**Routing metrics, fixed at the taxonomy freeze** (bootstrap 95% CIs, per slice). These are in
+addition to reply quality and the judge:
+- **Conversation state:** accuracy and macro-F1 (4 states, all items).
+- **Intent:** macro-F1 over the 11 intents, **conditional on intent-bearing gold states**
+  (`new_issue`, `issue_followup`), plus per-intent F1 and a confusion matrix.
+- **Escalation:** precision and recall, plus **must-escalate recall** (gold risk high, or reason
+  SECURITY / SAFETY_LEGAL / BILLING_DISPUTE).
+- **Joint routing correctness:** state, primary intent (when one is due) and escalate all correct.
+- **Never scored:** `secondary_intents`, `subtype`, `event_tag`. `reason_code` agreement is
+  reported for information only.
+- **Slices:** random vs stratified, first contact vs follow-up, and event-tied vs not. Reply
+  quality is also sliced by `reply_template_in_train`.
+
+_Original Phase 9 text:_
 1. `run_eval.py`:
    - verify `golden.lock`
    - build deps with `profile="eval"`

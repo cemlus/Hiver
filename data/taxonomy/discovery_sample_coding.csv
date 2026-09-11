@@ -1,0 +1,151 @@
+sample_no,record_id,conversation_state,intent,alt_intent,secondary_intents,subtype,event_tag,note
+O001,387946,issue_followup,hardware_devices,needs_more_context,,disc_drive,,stale context dropped; disc test
+O002,178453,new_issue,entitlements_subscriptions_codes,,,code_redemption,battlefront2_launch_beta,beta early-access code
+O003,205579,new_issue,needs_more_context,software_game_app,,,battlefront2_launch_beta,names a game beta but no problem
+O004,204403,issue_followup,software_game_app,,,app,fall_update_2017,console browser video broken after update
+O005,248431,issue_followup,support_process_complaint,,,,hurricane_maria,cannot use chat support; asks for another channel
+O006,273313,new_issue,hardware_devices,purchases_billing_orders,,disc_drive,,console scratched a new disc
+O007,295529,social_offtopic,,,,,,social; not a support request
+O008,300767,issue_followup,software_game_app,hardware_devices,,game,,in-game function bug
+O009,307540,new_issue,software_game_app,enforcement_safety,,app,,cannot send messages; says not suspended
+O010,328760,new_issue,connectivity_xbox_live,software_game_app,,,,game servers failed to allocate
+O011,332201,new_issue,connectivity_xbox_live,,,,,party error with open NAT
+O012,345595,issue_followup,account_access_profile,,,,,email alias change consequences
+O013,344739,issue_followup,enforcement_safety,,,,,suspension after spam reports
+O014,359038,social_offtopic,,,,,,off-topic complaint about a publisher
+O015,414172,new_issue,support_process_complaint,needs_more_context,,,,repeat contacts without solution; issue not stated
+O016,412514,new_issue,install_download_update,software_game_app,,,battlefront2_launch_beta,beta download blocked (publisher-side)
+O017,365015,issue_followup,support_process_complaint,hardware_devices,,,,are you going to help (disc issue in context)
+O018,929532,issue_followup,connectivity_xbox_live,account_access_profile,,,xbox_live_outage,content and sign-in down
+O019,713558,new_issue,connectivity_xbox_live,,,,xbox_live_outage,when will Live be fixed
+O020,722712,acknowledgement_closing,,,,,xbox_live_outage,works again after restart (thread: connectivity)
+O021,743704,new_issue,needs_more_context,,,,,image only
+O022,807565,new_issue,software_game_app,needs_more_context,,game,,in-game item not visible (unclear)
+O023,805812,new_issue,install_download_update,,,,,console update loops
+O024,831330,acknowledgement_closing,,,,,fall_update_2017,everything works now (thread: slow after update)
+O025,875284,new_issue,product_info_feedback,software_game_app,,,,app availability in the store
+O026,870619,new_issue,product_info_feedback,,,,,feature request
+O027,899017,new_issue,needs_more_context,support_process_complaint,,,,vague demand for help
+O028,917784,new_issue,purchases_billing_orders,,,,friday13_movie_sale,purchase fails with error
+O029,941532,new_issue,purchases_billing_orders,,,,friday13_movie_sale,purchase error code
+O030,960740,new_issue,account_access_profile,connectivity_xbox_live,,,friday13_movie_sale,cannot log in on 360 (another customer's thread)
+O031,1021641,new_issue,software_game_app,,,app,,360 not saving messages
+O032,1093610,issue_followup,install_download_update,hardware_devices,,,fall_update_2017,answers clarifying question; update broke console
+O033,1147280,new_issue,purchases_billing_orders,entitlements_subscriptions_codes,,,,paying twice for the same game
+O034,1209730,new_issue,hardware_devices,purchases_billing_orders,,controller_accessory,,broken Elite controller; warranty without receipt
+O035,1409571,new_issue,connectivity_xbox_live,,,,,Xbox Live error for 2 days
+O036,1462167,new_issue,entitlements_subscriptions_codes,product_info_feedback,,membership,,free-play weekend game will not launch
+O037,1523187,acknowledgement_closing,,,,,,power cycle fixed it (thread: signed out)
+O038,1440592,acknowledgement_closing,,,,,,issue fixed itself (thread: disconnects)
+O039,1678269,new_issue,account_access_profile,connectivity_xbox_live,,,,cannot sign in for 4 days
+O040,1548583,issue_followup,software_game_app,hardware_devices,,dashboard_system,fall_update_2017,dashboard still broken after steps
+O041,2006809,social_offtopic,,,,,fall_update_2017,praise for the update
+O042,1937942,acknowledgement_closing,,,,,,fixed itself (thread: purchase failed)
+O043,2051430,new_issue,hardware_devices,support_process_complaint,,controller_accessory,,cannot register controller on support site
+O044,2055978,new_issue,needs_more_context,support_process_complaint,,,,angry; no issue stated
+O045,2071310,acknowledgement_closing,,,,,fall_update_2017,works after hard reset (thread: dashboard)
+O046,1852555,issue_followup,account_access_profile,,,,,tenure/profile data wrong
+O047,858831,issue_followup,hardware_devices,,,disc_drive,,answers clarifying question: Blu-ray disc
+O048,866890,issue_followup,install_download_update,,,,,will send the requested info tonight: issue still open (revised S1)
+O049,903420,new_issue,install_download_update,,,,xbox_live_outage,installation stopped (brand cites outage)
+O050,954615,new_issue,connectivity_xbox_live,account_access_profile,,,,privacy setting blocks party voice
+O051,966038,new_issue,software_game_app,,,app,,YouTube app not working
+O052,964618,social_offtopic,,,,,fall_update_2017,praise for the update
+O053,960419,new_issue,install_download_update,software_game_app,,,,game downloads as an app
+O054,891188,new_issue,enforcement_safety,,,,,enforcement message: warning or penalty?
+O055,997068,new_issue,install_download_update,,,,,game needs reinstalling again
+O056,1029282,new_issue,hardware_devices,,,controller_accessory,,controllers disconnect
+O057,1029276,new_issue,software_game_app,,,dashboard_system,,notifications stopped
+O058,1037958,issue_followup,entitlements_subscriptions_codes,purchases_billing_orders,,purchased_item_missing,,charged for gamertag change not applied
+O059,1068162,issue_followup,software_game_app,,,game,,one game will not open
+O060,1899728,new_issue,software_game_app,,,dashboard_system,fall_update_2017,wallpaper needs refresh after update
+O061,1105085,new_issue,product_info_feedback,,,,,will a game come to Xbox One
+O062,1111123,issue_followup,hardware_devices,,,controller_accessory,,headset asks for controller update
+O063,1111772,acknowledgement_closing,,,,,,okay thank you (thread: 4K availability)
+O064,1118847,issue_followup,hardware_devices,software_game_app,,console,,freezing and black screen after steps
+O065,1141440,new_issue,product_info_feedback,support_process_complaint,,,fall_update_2017,angry opinion about the update
+O066,1151471,new_issue,entitlements_subscriptions_codes,purchases_billing_orders,,licence_home_sharing,,cannot add a free game to account
+O067,1178322,issue_followup,entitlements_subscriptions_codes,purchases_billing_orders,,,battlefront2_launch_beta,new game not showing in store
+O068,1236555,new_issue,install_download_update,,,,fall_update_2017,update deleted games
+O069,1298728,new_issue,enforcement_safety,,,,,banned for the 4th time
+O070,1306606,new_issue,product_info_feedback,,,,xbox_one_x_launch,what comes with the One X
+O071,1376297,new_issue,product_info_feedback,,,,,does setup need internet
+O072,1376283,new_issue,product_info_feedback,,,,,how to find people to play with
+O073,1359818,issue_followup,hardware_devices,software_game_app,,disc_drive,,Blu-ray playback error
+O074,1370514,new_issue,support_process_complaint,,,,,complaint about an agent
+O075,1371151,new_issue,product_info_feedback,,,,,backward-compatibility request
+O076,207464,issue_followup,purchases_billing_orders,,,,,still cannot buy from the store
+O077,1371729,new_issue,hardware_devices,,,external_storage,,external drive not detected
+O078,1376956,issue_followup,hardware_devices,,,display_output,,no signal
+O079,1398697,new_issue,software_game_app,product_info_feedback,,dashboard_system,,Insider feature missing
+O080,1784477,new_issue,product_info_feedback,,,,,backward-compatibility request
+O081,1401885,issue_followup,software_game_app,,,app,,Xbox app error persists
+O082,2438004,new_issue,needs_more_context,support_process_complaint,,,,profanity plus screenshot only
+O083,2453133,new_issue,needs_more_context,,,,,points to an earlier question
+O084,1848043,issue_followup,software_game_app,support_process_complaint,,game,,please help (context: game freezes)
+O085,2495936,new_issue,install_download_update,,,,,update error loop
+O086,2496588,new_issue,software_game_app,,,app,,cannot stop Mixer broadcast
+O087,2626117,new_issue,hardware_devices,support_process_complaint,,controller_accessory,,controller bumper defect; angry
+O088,2624341,new_issue,software_game_app,,,app,,achievement not unlocked
+O089,2624325,issue_followup,software_game_app,,,game,,backward-compat game autosave
+O090,323,new_issue,software_game_app,,,app,,app error code
+O091,15148,issue_followup,purchases_billing_orders,,,,xbox_one_x_launch,pre-order delivery worry
+O092,60195,issue_followup,hardware_devices,,,console,hurricane_maria,console shuts down
+O093,1425579,issue_followup,account_access_profile,,,,,child account date of birth
+O094,1451336,issue_followup,support_process_complaint,,,,,complaint about phone support
+O095,1457108,issue_followup,software_game_app,support_process_complaint,,game,,developer not responding about a patch
+O096,1478218,new_issue,connectivity_xbox_live,hardware_devices,,,,setup: cannot get online
+O097,1481741,new_issue,support_process_complaint,software_game_app,,,cod_wwii_launch,sarcastic complaint about launch problems
+O098,1514005,new_issue,software_game_app,,,dashboard_system,,on-screen keyboard too big
+O099,1531834,new_issue,enforcement_safety,,,,,gamerpic rejected
+O100,1529692,new_issue,connectivity_xbox_live,,,,,friends cannot get online; party chat
+O101,1527480,social_offtopic,,,,,,stream self-promotion
+O102,1540213,new_issue,software_game_app,connectivity_xbox_live,connectivity_xbox_live,game,,game audio crash; robotic party voice
+O103,1550471,new_issue,entitlements_subscriptions_codes,purchases_billing_orders,,purchased_item_missing,,charged; game missing from library
+O104,1595815,new_issue,product_info_feedback,,,,xbox_one_x_launch,external SSD question
+O105,2018153,new_issue,account_access_profile,,,,,child to adult account
+O106,1546338,issue_followup,software_game_app,,,app,,store app keeps crashing
+O107,1639335,new_issue,entitlements_subscriptions_codes,account_access_profile,,licence_home_sharing,,change Home Xbox
+O108,1649377,new_issue,entitlements_subscriptions_codes,,,dlc_bonus_content,cod_wwii_launch,pre-order bonus missing
+O109,1644240,issue_followup,software_game_app,install_download_update,,game,,answers clarifying question: games will not load
+O110,1691214,new_issue,entitlements_subscriptions_codes,install_download_update,,licence_home_sharing,,owned game cannot be installed; store region
+O111,1704319,new_issue,install_download_update,hardware_devices,,,,disc game will not install
+O112,1706513,new_issue,account_access_profile,,,,,cannot create an account
+O113,1697828,new_issue,install_download_update,product_info_feedback,,,,cannot install a 360 game (not backward compatible)
+O114,1727315,new_issue,software_game_app,connectivity_xbox_live,,dashboard_system,,cannot exit a party (UI)
+O115,1765600,new_issue,purchases_billing_orders,hardware_devices,,,xbox_one_x_launch,wrong controller in the box
+O116,1769680,new_issue,product_info_feedback,,,,fall_update_2017,how to stream in 1080p
+O117,1777618,new_issue,entitlements_subscriptions_codes,account_access_profile,,licence_home_sharing,,Home Xbox change limit
+O118,2114280,new_issue,product_info_feedback,,,,,DLC request
+O119,2114221,new_issue,hardware_devices,connectivity_xbox_live,connectivity_xbox_live,controller_accessory,,controllers will not sync after reset
+O120,2114229,issue_followup,product_info_feedback,purchases_billing_orders,,,,accessory stock availability
+O121,2124069,acknowledgement_closing,,,,,xbox_one_x_launch,fixed with another USB port (thread: external drive)
+O122,2129547,new_issue,purchases_billing_orders,support_process_complaint,,,xbox_one_x_launch,pre-order delivery delays (retailer)
+O123,2724934,new_issue,hardware_devices,,,display_output,xbox_one_x_launch,green dots on screen
+O124,2157949,new_issue,connectivity_xbox_live,software_game_app,software_game_app,,fall_update_2017,hotspot connection broken after update
+O125,2181370,acknowledgement_closing,,,,,xbox_one_x_launch,exchange arranged; thanks (thread: console fault)
+O126,2188986,new_issue,enforcement_safety,,,,,why no action on my report
+O127,2202292,new_issue,hardware_devices,,,console,xbox_one_x_launch,fan noise normal?
+O128,2209929,new_issue,hardware_devices,,,controller_accessory,xbox_one_x_launch,controller desync
+O129,2197045,social_offtopic,,,,,,German banter; slipped the language filter
+O130,2196937,issue_followup,account_access_profile,enforcement_safety,,,,hacked account follow-up (SECURITY rule)
+O131,2196917,new_issue,connectivity_xbox_live,,,,,lobby issues with open NAT
+O132,2232817,new_issue,account_access_profile,product_info_feedback,,,,when are gamertags released
+O133,2232755,new_issue,product_info_feedback,,,,,feature request
+O134,2244484,new_issue,connectivity_xbox_live,software_game_app,,,xbox_live_outage,apps fail; Live says servers down
+O135,2244439,new_issue,hardware_devices,,,disc_drive,xbox_one_x_launch,disc drive; wants a replacement
+O136,2258342,new_issue,entitlements_subscriptions_codes,account_access_profile,,membership,cod_wwii_launch,profile not allowed to play Xbox Live
+O137,2264056,new_issue,software_game_app,,,dashboard_system,,guide menu unresponsive
+O138,2264062,new_issue,needs_more_context,software_game_app,,,,same issue (no context)
+O139,2264120,issue_followup,entitlements_subscriptions_codes,product_info_feedback,,membership,,Gold trial limits
+O140,2300747,new_issue,entitlements_subscriptions_codes,,,membership,,paid subscription not recognised
+O141,2302875,new_issue,software_game_app,entitlements_subscriptions_codes,,game,,in-game credits not received
+O142,2301563,new_issue,connectivity_xbox_live,,software_game_app,,cod_wwii_launch,game servers; disconnects
+O143,2304167,new_issue,install_download_update,,,,,slow downloads
+O144,2304161,new_issue,software_game_app,connectivity_xbox_live,,app,,app feature not working
+O145,2365309,new_issue,entitlements_subscriptions_codes,,,licence_home_sharing,battlefront2_launch_beta,game sharing and early access
+O146,2376614,social_offtopic,,,,,,off-topic banter
+O147,2380329,social_offtopic,,,,,,compliment
+O148,2382110,new_issue,product_info_feedback,purchases_billing_orders,,,,payment method policy question
+O149,2415198,new_issue,enforcement_safety,support_process_complaint,,,,criticises enforcement
+O150,2442246,new_issue,hardware_devices,,,controller_accessory,,controller will not connect
