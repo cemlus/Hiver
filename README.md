@@ -5,7 +5,7 @@ classifies each customer tweet's intent, drafts a reply grounded in how the bran
 before, and decides whether to auto-handle or escalate (with a reason). The repo also contains
 the evaluation harness that measures how far the agent can be trusted.
 
-> **Status:** Phase 0 (setup) complete. See [Build progress](#build-progress).
+> **Status:** Phases 0–1 complete. Brand: **XboxSupport**. See [Build progress](#build-progress).
 
 ## Quickstart
 
@@ -41,15 +41,17 @@ runs use only that cache, so results reproduce without an API key.
 | `src/integrations/` | Optional Postgres / Redis / Slack adapters (never used by eval) |
 | `src/dataprep/` | Ingestion, cleaning, splits, weak labels, taxonomy exploration |
 | `src/eval/` | Baselines, metrics, LLM judge, judge–human agreement |
+| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison), `validate_brand.py` (usable-data check). Both need `data/raw/twcs.csv` |
 | `data/` | Processed subsample, golden/dev sets, codebook, LLM cache |
 | `prompts/` | Prompt templates |
-| `results/` | Metrics, predictions, failure analysis |
+| `results/` | EDA and brand validation reports, metrics, predictions, failure analysis |
 | `DECISIONS.md` | Decision log |
+| `PLAN.md` | Phase-by-phase build plan and lessons learned |
 
 ## Build progress
 
 - [x] Phase 0: setup, ports, provider-agnostic LLM layer
-- [ ] Phase 1: EDA & brand selection
+- [x] Phase 1: EDA & brand selection (XboxSupport; [`results/eda.md`](results/eda.md), [`results/brand_validation.md`](results/brand_validation.md))
 - [ ] Phase 2: ingestion, cleaning, splits, weak outcome labels
 - [ ] Phase 3: intent taxonomy & escalation policy (codebook)
 - [ ] Phase 4: typed contracts

@@ -1,7 +1,7 @@
 # Every tunable lives here. To switch LLM provider, change only models.*.name
 # (LiteLLM "<provider>/<model>" strings) and put that provider's API key in .env.
 
-brand: null               # chosen in Phase 1 (EDA)
+brand: XboxSupport        # frozen in Phase 1: see results/eda.md and results/brand_validation.md
 seed: 42
 codebook_version: v1
 

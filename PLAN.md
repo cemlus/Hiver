@@ -209,7 +209,52 @@ Enforcement:
 ### Phase 0 — Setup, ports, provider-agnostic LLM layer ✅ DONE
 See §1. Exit criteria met: real prompt works; the second call hits the cache; the provider is one config line; importing the LLM layer loads no optional packages.
 
-### Phase 1 — EDA & brand selection (~3h)
+### Phase 1 — EDA & brand selection ✅ DONE (2026-09-11): brand = **XboxSupport**
+**Outcome.** Details are in `results/eda.md`, `results/brand_validation.md` and the `[P1]`
+entries in `DECISIONS.md`.
+
+**Deviations from the plan**
+- The analysis is plain scripts (`scripts/eda.py`, `scripts/validate_brand.py`), not a notebook.
+  No Jupyter dependencies were added.
+- The CSV is read with pandas' C engine, not pyarrow: 106,891 tweets contain quoted newlines.
+
+**Verified dataset facts**
+- `response_tweet_id` holds comma-separated IDs in 222,426 tweets, so threads are trees.
+- 99.7% of tweets fall in the last 90 days (Oct–Nov 2017).
+- 0.1% of tweets are orphans (their parent isn't in the dataset).
+
+**XboxSupport sizing**
+
+| | Count |
+|---|---|
+| Brand tweets | 24,557 |
+| Usable exchanges | 18,549 (13,006 first contacts) |
+| Threads | 12,703 |
+| Exchanges with a substantive reply | 4,413 |
+| Confirmed public fixes | about 80–100 |
+
+Noise: 99.4% of replies carry an agent sign-off (`^XS`), 31% are split replies, 26% are canned
+DM templates, and 21.5% are DM deflections.
+
+**Carry forward into later phases**
+- **Phase 2:**
+  - Merge split replies (the brand continuing itself within 15 min) and strip `^XX` sign-offs.
+  - Drop non-English, fewer-than-3-word, "DM sent" and duplicate customer tweets.
+  - Split per thread; the time split falls inside Oct–Nov 2017.
+  - Port `build_exchanges` / `clean_waterfall` from `scripts/validate_brand.py` rather than
+    rewriting them.
+- **Phase 3:**
+  - Add a "vague / needs more info" intent and explicit follow-up rules.
+  - Merge purchase, codes and subscription if they turn out too thin.
+  - The topic and draft-intent sizes in `results/brand_validation.md` are exploratory only.
+- **Phase 5:** the stratified 80 must top up rare intents to about 10 each (bans, codes and
+  subscriptions get about 3 each in a random 120).
+- **Phases 6/7:** outcome labels are too sparse for evaluation. Use them only to nudge retrieval
+  re-ranking.
+- `LITELLM_LOCAL_MODEL_COST_MAP` isn't needed: a live call takes 5.5 s after the move.
+
+_The original Phase 1 plan, kept for the record:_
+
 **Known facts about `twcs.csv`:**
 - 493 MB, header `tweet_id,author_id,inbound,created_at,text,response_tweet_id,in_response_to_tweet_id`.
 - `created_at` looks like `Tue Oct 31 22:10:47 +0000 2017` (format `%a %b %d %H:%M:%S %z %Y`).

@@ -25,3 +25,36 @@ comes from. It will be trimmed to the best 10–15 for submission.
   15-minute reproduction budget.
 - **[P0] Local sentence-transformers embeddings (`all-MiniLM-L6-v2`).** Free, deterministic, and
   independent of the LLM provider.
+- **[P1] Brand: XboxSupport, chosen on fit, not size.** It was scored on five criteria: volume,
+  intent diversity, substantive resolutions, grounding material and noise. It has the highest
+  share of substantive replies in the top 15 (20.8%), the longest troubleshooting threads and the
+  highest customer follow-up rate.
+  - AppleSupport is 4× larger but dominated by one iOS 11 bug, answered with the same canned link
+    6,250 times. A golden set drawn from it would inflate the headline numbers.
+  - AmazonHelp is only about 81% English, and TMobileHelp is 74% DM-only.
+
+  Evidence: `results/eda.md`.
+- **[P1] Count usable exchanges, not brand tweets.** An exchange is one customer tweet plus the
+  brand's reply, with split replies (the brand continuing itself within 15 min) merged.
+  - 24,557 XboxSupport tweets become 20,213 exchanges, and 18,549 are usable after dropping
+    non-English, near-empty, "DM sent" and duplicate tweets.
+  - Those come from 12,703 threads (about 1.5 per thread), so splits must be per thread.
+  - Only 4,413 got a substantive reply, and that is the grounding pool.
+
+  Evidence: `results/brand_validation.md`.
+- **[P1] Outcome heuristics are too sparse to evaluate against.** 439 exchanges end with the
+  customer confirming a fix, but a hand check found most were fixed through other channels. Only
+  about 80–100 show a public reply that demonstrably worked, and 58% get no customer answer at
+  all. Outcome labels may only nudge retrieval re-ranking; evaluation relies on human golden
+  labels and the judge.
+- **[P1] The codebook needs a "vague / needs more info" intent, and the golden set needs a
+  stratified slice.** Keyword draft intents leave 42% of usable tweets unmatched, mostly vague
+  help requests and context-dependent follow-ups. The rarest intents (bans, codes,
+  subscriptions) would get only about 3 examples each in a 120-item random slice.
+- **[P1] Analysis lives in plain, rerunnable scripts with hand-checked heuristics.**
+  - `scripts/eda.py` and `scripts/validate_brand.py` regenerate their reports deterministically.
+    Hand-written conclusions sit in a block the scripts preserve on rerun.
+  - Every keyword metric was spot-checked on samples and tightened when it misfired. For example,
+    T-Mobile's "substantive" replies were really DM invitations.
+  - The raw CSV is read with pandas' C engine: 106,891 tweets contain quoted newlines that
+    pyarrow's reader rejects.
