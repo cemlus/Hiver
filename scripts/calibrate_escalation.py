@@ -370,7 +370,8 @@ def render(dev: pd.DataFrame) -> str:
     reason_agree = sum(r["reason_code"] == r["prop"].reason for r in recs)
     L += [f"Reason codes (informational only): the proposed policy's code matches the label on "
           f"{pct(reason_agree, 40)} items.", "",
-          "**How to read this.** 24 of the 40 items were targeted at hard cases, so these are not estimates of "
+          "**This is not independent validation.** The labels are LLM-assisted drafts of the same rules, so the "
+          "agreement is partly circular. **How to read this.** 24 of the 40 items were targeted at hard cases, so these are not estimates of "
           "production rates. Dev is too small for CIs to separate the policies; what matters is *which* "
           "items disagree and why. The broad reading of the draft gives the proposed decisions, which is what "
           "C1 writes down.", ""]

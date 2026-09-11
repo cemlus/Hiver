@@ -148,7 +148,8 @@ comes from. It will be trimmed to the best 10–15 for submission.
 - **[P3] Dev labels are ChatGPT drafts reviewed and approved by the project owner, not blind human
   labels.** The plan asked for no model pre-fill. For dev, which only tunes the policy, this was
   accepted. It does make agreement with the draft partly circular, because the drafts applied the
-  draft rules, so the calibration mostly shows that the rules can be applied consistently. Fixes
+  draft rules, so the calibration mostly shows that the rules can be applied consistently. Its
+  40/40 agreement must never be presented as independent validation. Fixes
   made after review are recorded in each item's `notes`. The golden set should get a blind human
   first pass, because the judge–human agreement result depends on it.
 - **[P3] Escalation policy frozen after dev calibration (2026-09-11).** Evidence:
@@ -188,3 +189,33 @@ comes from. It will be trimmed to the best 10–15 for submission.
   train-period events: 5 of 7 purchases cases (the Friday the 13th sale, One X pre-orders), and 5
   of 12 connectivity and 5 of 14 entitlements cases. Golden results will be sliced by event-tied
   vs not.
+- **[P5] Golden set: 200 holdout items (120 random + 80 stratified), sampled only after both
+  freezes.** `scripts/sample_golden.py` draws them from `loaders.eval_pool()`, which already
+  excludes near-duplicates of train messages. On top of that it applies the same char TF-IDF
+  cosine ≥ 0.95 test to exclude:
+  - every dev thread
+  - every near-duplicate of a dev message
+  - more than one item per thread
+  - near-duplicate pairs inside golden
+
+  How the 200 are drawn:
+  - The random 120 are drawn first, so they are an unbiased slice of the pool.
+  - The 80 stratified items (10 per stratum) top up rare and risky cases, found with input-side
+    fields only: account security, enforcement, support complaints, purchases, codes and
+    subscriptions, vague messages, anger, and follow-ups reporting failed steps.
+  - Strata are candidate finders, not labels. Results are reported per slice.
+- **[P5] Golden labels have three layers, kept apart** (`data/golden/LABELING.md`).
+  - **Primary human gold:** the project owner labels `conversation_state`, `intent`, `escalate`
+    and `label_confidence` for all 200 against the frozen codebook, before seeing any model
+    label. The finished sheet is locked with `golden.lock` (SHA-256), and a test fails if it
+    changes.
+  - **LLM second opinion:** collected afterwards, blind to the human labels, in its own file.
+  - **Final adjudicated labels:** every human–LLM disagreement is resolved in an adjudication log
+    that records who decided and why. The final file is generated from the human file plus that
+    log, never edited by hand.
+  - **Reporting:** the report states human–LLM agreement and how many labels adjudication changed.
+    Headline metrics use the final labels, with the primary human labels as a sensitivity check.
+    The LLM judge is validated against the human layer.
+- **[P5] Golden is evaluation-only.** It is never used to train, as few-shot examples, for
+  retrieval, or to tune prompts, thresholds or rules. Error analysis may read golden results, but
+  any change it prompts is reported as post-hoc and re-checked on dev.

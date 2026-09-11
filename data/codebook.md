@@ -324,6 +324,8 @@ How the golden set will be scored (`src/eval`, Phase 9). Every metric gets a boo
 - **Joint routing correctness:** the share of items where the state is right, the primary intent is right (when the gold state carries one), and `escalate` is right, all at once.
 - **Never scored:** `secondary_intents`, `subtype`, `event_tag`. `reason_code` agreement is reported for information only.
 - **Analysis slices:** first contact vs follow-up, and event-tied vs not, where event tags were noted.
+- **Gold layers:** the project owner labels the 200 golden items first, without seeing any model labels. That file is then locked (`golden.lock`) and never edited. An LLM second opinion is collected afterwards, and disagreements are resolved in a separate adjudication log. Headline metrics use the final adjudicated labels and are also reported against the primary human labels. See `data/golden/LABELING.md`.
+- **Evaluation only:** golden items are never used for training, few-shot examples, retrieval, or prompt, threshold or rule tuning.
 
 ## Internal fields (never scored)
 

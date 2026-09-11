@@ -23,7 +23,7 @@ The labels escalate 20/40 items. 4 are must-escalate (risk high, or reason SECUR
 
 Reason codes (informational only): the proposed policy's code matches the label on 39/40 (98%) items.
 
-**How to read this.** 24 of the 40 items were targeted at hard cases, so these are not estimates of production rates. Dev is too small for CIs to separate the policies; what matters is *which* items disagree and why. The broad reading of the draft gives the proposed decisions, which is what C1 writes down.
+**This is not independent validation.** The labels are LLM-assisted drafts of the same rules, so the agreement is partly circular. **How to read this.** 24 of the 40 items were targeted at hard cases, so these are not estimates of production rates. Dev is too small for CIs to separate the policies; what matters is *which* items disagree and why. The broad reading of the draft gives the proposed decisions, which is what C1 writes down.
 
 ## 2. Draft AUTO vs labelled ESCALATE
 

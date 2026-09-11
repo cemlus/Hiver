@@ -6,7 +6,7 @@ before, and decides whether to auto-handle or escalate (with a reason). The repo
 the evaluation harness that measures how far the agent can be trusted.
 
 > **Status:** Phases 0–3 complete. Taxonomy **frozen** (11 intents, 4 conversation states) and
-> escalation policy **frozen** after calibration on the 40-item dev set. Next: the golden set.
+> escalation policy **frozen** after calibration on the 40-item dev set. Golden set sampled; awaiting human labels.
 > Brand: **XboxSupport**. See [Build progress](#build-progress).
 
 ## Quickstart
@@ -69,14 +69,24 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
   - `secondary_intents`, `subtype` and `event_tag` are internal and never scored.
   - The name lists are pinned by `tests/test_taxonomy_frozen.py`.
 - **Freeze order.** Taxonomy (frozen) → escalation policy (calibrated on the 40-item dev set and
-  frozen; [`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md)) → next,
-  sample and label the 200-item golden set, excluding all dev threads.
+  frozen; [`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md)) → golden
+  set sampled (see below), now waiting for human labels.
 - **Dev set.** `scripts/sample_dev.py` drew 40 holdout items (16 random + 24 targeted at the
   escalation behaviours to calibrate) into `data/golden/dev_labeling_sheet.csv`. The sheet is
   blind; `dev_sample_key.csv` records each item's slice and thread. Its labels are ChatGPT drafts
   reviewed and approved by the project owner (see `DECISIONS.md`), and it is never a reported
   result. D12 is Portuguese; it got past the heuristic
-  language filter and is kept as drawn (see `DECISIONS.md`).
+  language filter and is kept as drawn (see `DECISIONS.md`). Because the drafts applied the same
+  rules, the calibration's 40/40 agreement is partly circular: it is **not** independent
+  validation.
+- **Golden set.** `scripts/sample_golden.py` drew 200 holdout items (120 random + 80 stratified)
+  into the blind sheet `data/golden/golden_labeling_sheet.csv`. It excludes every dev thread and
+  every near-duplicate of a train or dev message.
+  - The project owner labels it first, without seeing model labels, and the finished sheet is
+    locked.
+  - An LLM second opinion and an adjudication log are kept as separate layers; see
+    [`data/golden/LABELING.md`](data/golden/LABELING.md).
+  - Golden is used for evaluation only.
 - **Metrics** (bootstrap 95% CIs, reported per golden slice):
   - Conversation state: accuracy and macro-F1.
   - Intent: macro-F1 conditional on intent-bearing gold states, plus per-intent F1 and a
@@ -100,7 +110,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 | `src/integrations/` | Optional Postgres / Redis / Slack adapters (never used by eval) |
 | `src/dataprep/` | Ingestion, cleaning, splits, weak labels, taxonomy exploration |
 | `src/eval/` | Baselines, metrics, LLM judge, judge–human agreement |
-| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison) and `validate_brand.py` (usable-data check), which need `data/raw/twcs.csv`; `taxonomy_explore.py` (discovery sample, topics, codebook render); `sample_dev.py` (the 40-item dev set); `calibrate_escalation.py` (draft vs proposed escalation policy on dev labels) |
+| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison) and `validate_brand.py` (usable-data check), which need `data/raw/twcs.csv`; `taxonomy_explore.py` (discovery sample, topics, codebook render); `sample_dev.py` (the 40-item dev set); `calibrate_escalation.py` (draft vs proposed escalation policy on dev labels); `sample_golden.py` (the 200-item golden set and its blind labelling sheet) |
 | `data/taxonomy/` | Taxonomy spec (`taxonomy_v1.yaml`) and the discovery coding sample (not gold) |
 | `data/` | Processed subsample, golden/dev sets, codebook, LLM cache |
 | `prompts/` | Prompt templates |
@@ -116,7 +126,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 - [x] Phase 3a: intent taxonomy frozen ([`data/codebook.md`](data/codebook.md), [`results/taxonomy/proposal.md`](results/taxonomy/proposal.md))
 - [x] Phase 3b: escalation policy calibrated on the dev set and frozen ([`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md))
 - [ ] Phase 4: typed contracts
-- [ ] Phase 5: dev + golden labelling
+- [ ] Phase 5: dev + golden labelling (dev done; golden sampled, awaiting human labels)
 - [ ] Phase 6: weak supervision & baselines
 - [ ] Phase 7: core business logic
 - [ ] Phase 8: LangGraph orchestration

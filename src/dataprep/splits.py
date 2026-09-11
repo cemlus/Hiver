@@ -31,14 +31,20 @@ def assign_splits(thread_started_at: pd.Series, created_at: pd.Series, split_dat
                      ["holdout", "train"], default="excluded")
 
 
+def char_vectorizer() -> TfidfVectorizer:
+    """The near-duplicate representation: character 3-5-gram TF-IDF, so "won't"/"wont" or extra
+    "!!!" barely matter. Rows come out L2-normalised, so a dot product is a cosine. max_df drops
+    n-grams in > 20% of texts ("the ", "xbox"): they say nothing about duplication and would make
+    the similarity matrix dense and slow. Fit it on a large corpus, not on a handful of texts."""
+    return TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), max_df=0.2, sublinear_tf=True)
+
+
 def max_similarity(train_texts: pd.Series, other_texts: pd.Series, chunk: int = 500) -> np.ndarray:
     """For each text in `other_texts`, its highest cosine similarity to any text in
-    `train_texts` (character 3-5-gram TF-IDF, so "won't"/"wont" or extra "!!!" barely matter)."""
+    `train_texts` (see char_vectorizer)."""
     if len(other_texts) == 0 or len(train_texts) == 0:
         return np.zeros(len(other_texts))
-    # max_df drops n-grams in > 20% of texts ("the ", "xbox"): they say nothing about
-    # duplication and would make the similarity matrix dense and slow.
-    vec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), max_df=0.2, sublinear_tf=True)
+    vec = char_vectorizer()
     vec.fit(pd.concat([train_texts, other_texts]))
     train_t = vec.transform(train_texts).T.tocsr()
     other = vec.transform(other_texts)

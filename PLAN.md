@@ -347,8 +347,8 @@ _The original Phase 2 plan, kept for the record:_
   `reason_code`, plus internal `secondary_intents`, `subtype` and `event_tag`. `AgentOutput`
   predicts state, intent and escalation. `ReasonCode` adds `STEPS_FAILED`; `REPLY_FAILED_CHECKS`
   is only valid with `triggered_by = validation`.
-- **Phase 5:** both freezes are done, so golden can be sampled, excluding the 40 dev threads. A
-  blind human first pass is recommended (dev labels were ChatGPT-assisted).
+- **Phase 5:** golden sampled, excluding the 40 dev threads. The project owner labels it blind
+  first (see Phase 5 status).
 - **Phase 9:** metrics as listed under Phase 9.
 
 _The original Phase 3 plan, kept for the record:_
@@ -393,6 +393,18 @@ _The original Phase 3 plan, kept for the record:_
    decisions, adjust, record the changes in DECISIONS, then **freeze the escalation policy**.
 4. **Only then sample the golden set (200) from the holdout, excluding every dev thread.** Label
    it and lock it with `golden.lock`.
+
+**Status (2026-09-11):**
+- **Steps 1–3 done.** Dev labels were ChatGPT drafts approved by the project owner, so the
+  calibration is partly circular and not independent validation.
+- **Golden sampled** by `scripts/sample_golden.py`: 120 random + 80 stratified, in the blind sheet
+  `data/golden/golden_labeling_sheet.csv`.
+- **Human-first protocol** (`data/golden/LABELING.md`), in order:
+  1. primary human labels, locked
+  2. a blind LLM second opinion
+  3. an adjudication log
+  4. final labels generated from the human labels plus the log
+- **Golden is evaluation-only**, and `tests/test_golden_integrity.py` guards it.
 
 _Original Phase 5 text:_
 1. Sample from the post-split pool:
