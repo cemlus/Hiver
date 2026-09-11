@@ -1,5 +1,6 @@
-"""Taxonomy v1 is frozen: renaming, adding or removing an intent or state has to be a deliberate,
-versioned change (new codebook version, relabelling). The escalation policy may still change."""
+"""Taxonomy v1 and its escalation policy are frozen: renaming, adding or removing an intent, state
+or risk rule has to be a deliberate, versioned change (new codebook version, relabelling). The
+escalation policy was calibrated on the dev set before freezing."""
 import yaml
 
 from src.config import resolve
@@ -26,10 +27,18 @@ def test_states_are_frozen():
     assert s["states_without_intent"] == ["acknowledgement_closing", "social_offtopic"]
 
 
-def test_taxonomy_is_frozen_and_escalation_status_is_explicit():
+def test_taxonomy_and_escalation_are_frozen():
     s = spec()
     assert s["taxonomy_status"] == "frozen"
-    assert s["escalation_status"] in {"draft", "frozen"}
+    assert s["escalation_status"] == "frozen"
+
+
+def test_escalation_rules_match_the_approved_policy():
+    s = spec()
+    assert [r[0] for r in s["risk_rules"]] == [
+        "account_compromised", "harm_or_legal", "money_dispute", "repeat_contact", "steps_failed", "strong_anger"]
+    codes = next(values for field, _, values in s["label_fields"] if field == "reason_code")
+    assert "STEPS_FAILED" in codes and "REPLY_FAILED_CHECKS" in codes
 
 
 def test_s1_open_issues_are_followups():

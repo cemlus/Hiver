@@ -1,6 +1,6 @@
 # Intent taxonomy (v1, 2026-09-11)
 
-> **Taxonomy FROZEN (v1, 2026-09-11): 11 intents and 4 conversation states. The escalation policy is still a DRAFT: it will be calibrated on the 40-item dev set, then frozen. The 200-item golden set is not sampled or labelled until both are frozen.** Rendered by `scripts/taxonomy_explore.py render` from `data/taxonomy/taxonomy_v1.yaml` and `data/taxonomy/discovery_sample_coding.csv`. The labeller-facing codebook is `data/codebook.md`. No classifier exists yet.
+> **Taxonomy FROZEN (v1, 2026-09-11): 11 intents and 4 conversation states. Escalation policy FROZEN (2026-09-11) after calibration on the 40-item dev set. The 200-item golden set is labelled against this version.** Rendered by `scripts/taxonomy_explore.py render` from `data/taxonomy/taxonomy_v1.yaml` and `data/taxonomy/discovery_sample_coding.csv`. The labeller-facing codebook is `data/codebook.md`. No classifier exists yet.
 
 > **Evidence status.** The 150 exchanges in `data/taxonomy/discovery_sample_coding.csv` are **taxonomy discovery evidence, not the evaluation gold set.** One person (the assistant, while drafting) coded them to find and size candidate intents. They come from the **train** split, so they can never enter dev or golden. The golden set will be sampled from the holdout split and labelled against the frozen codebook. Counts derived from this sample are rough estimates.
 
@@ -17,7 +17,7 @@
 
 ## Final table (v1)
 
-Estimates are `k / 150 × 12,792` train exchanges (95% Wilson range); the sample is too small to resolve intents under ~2%. 133 of the 150 sampled exchanges carry an intent; the rest are closing or social messages (see conversation states). Default risk and escalation are a separate layer and are still DRAFT.
+Estimates are `k / 150 × 12,792` train exchanges (95% Wilson range); the sample is too small to resolve intents under ~2%. 133 of the 150 sampled exchanges carry an intent; the rest are closing or social messages (see conversation states). Default risk and escalation are a separate layer (policy status: frozen).
 
 | intent | definition | include | exclude | est. train count (95% range) | response strategy | default risk | default escalation | top confusable (seen in coding) |
 |---|---|---|---|---|---|---|---|---|
@@ -133,7 +133,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Check for a known outage first and point to the status page. Otherwise give network troubleshooting: power cycle the console and router, check NAT and detailed network stats, wired vs Wi-Fi.
 
-**Default risk.** `low`. **Default escalation (draft).** Auto (ROUTINE_TROUBLESHOOTING, or GENERAL_INFO for outages). Escalate on REPEAT_CONTACT when the standard steps have already failed.
+**Default risk.** `low`. **Default escalation.** Auto (ROUTINE_TROUBLESHOOTING, or GENERAL_INFO for outages). Escalate (STEPS_FAILED) when the standard steps have already failed.
 
 **Estimated training count.** ≈ 1,020 (95% range 590 – 1,720; 12 of 150 in the discovery sample).
 
@@ -178,7 +178,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Give install and update troubleshooting (clear local storage, offline system update, cancel and reinstall, check storage and the queue), or point to a known publisher-side issue.
 
-**Default risk.** `low`. **Default escalation (draft).** Auto (ROUTINE_TROUBLESHOOTING). Escalate on REPEAT_CONTACT when an update has bricked the console and the steps have failed.
+**Default risk.** `low`. **Default escalation.** Auto (ROUTINE_TROUBLESHOOTING). Escalate (STEPS_FAILED) when the standard steps have already failed, e.g. an update that bricked the console.
 
 **Estimated training count.** ≈ 1,020 (95% range 590 – 1,720; 12 of 150 in the discovery sample).
 
@@ -221,7 +221,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Give device troubleshooting (power cycle, another outlet, re-pair and update the controller, check the drive). If the device is faulty, route to the online repair or replacement process.
 
-**Default risk.** `medium`. **Default escalation (draft).** Auto for first-line steps (ROUTINE_TROUBLESHOOTING). Escalate (ACCOUNT_SPECIFIC) when a repair, replacement or warranty decision is needed, or the steps have already failed.
+**Default risk.** `medium`. **Default escalation.** Auto for first-line steps (ROUTINE_TROUBLESHOOTING), including a bare 'it broke' with no request: give the steps and ask for the symptom. Escalate (ACCOUNT_SPECIFIC) when the customer asks for a repair, replacement, warranty or servicing, or a repaired or replaced device still fails. Escalate (STEPS_FAILED) when the first-line steps have already failed.
 
 **Estimated training count.** ≈ 1,620 (95% range 1,060 – 2,420; 19 of 150 in the discovery sample).
 
@@ -274,7 +274,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Give app or game troubleshooting (power cycle, remove and re-add the profile, uninstall and reinstall, check whether the console is in the Insider preview). Point to the developer or publisher for game-side bugs and patches.
 
-**Default risk.** `low`. **Default escalation (draft).** Auto (ROUTINE_TROUBLESHOOTING). Escalate on REPEAT_CONTACT when the steps have already failed; OUT_OF_SCOPE (developer) for patch timelines.
+**Default risk.** `low`. **Default escalation.** Auto (ROUTINE_TROUBLESHOOTING). Escalate (STEPS_FAILED) when the steps have already failed; OUT_OF_SCOPE (developer) for patch timelines.
 
 **Estimated training count.** ≈ 2,220 (95% range 1,550 – 3,090; 26 of 150 in the discovery sample).
 
@@ -326,7 +326,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Link the self-service guide (recovery, alias, gamertag, family settings). Fixes that touch the customer's own account need identity verification, so hand off to chat or phone support.
 
-**Default risk.** `medium`. **Default escalation (draft).** Escalate (ACCOUNT_SPECIFIC) when the fix needs the customer's own account, which is most cases. Auto (GENERAL_INFO) for general how-to questions such as child-account rules.
+**Default risk.** `medium`. **Default escalation.** Escalate (ACCOUNT_SPECIFIC) when the fix needs someone to see or change this customer's own account (sign-in failures on their account, linked accounts, gamertag or profile changes that fail), which is most cases. Auto (GENERAL_INFO) for general how-to or policy questions such as child-account rules.
 
 **Estimated training count.** ≈ 770 (95% range 410 – 1,410; 9 of 150 in the discovery sample).
 
@@ -371,7 +371,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Acknowledge, share generic tips if relevant (check the payment info, try the web store), then route charges, refunds and orders to billing/chat support, and retailer orders to the retailer.
 
-**Default risk.** `high`. **Default escalation (draft).** Always escalate (BILLING_DISPUTE for charges and refunds, otherwise ACCOUNT_SPECIFIC). Generic tips may go in the reply, but a person owns the case.
+**Default risk.** `high`. **Default escalation.** Always escalate (BILLING_DISPUTE for charges and refunds, otherwise ACCOUNT_SPECIFIC). Generic tips may go in the reply, but a person owns the case.
 
 **Estimated training count.** ≈ 600 (95% range 290 – 1,190; 7 of 150 in the discovery sample).
 
@@ -418,7 +418,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Give entitlement troubleshooting (check subscriptions and order history, remove and re-add the profile, power cycle, follow the redemption guide). Hand off if it's still missing.
 
-**Default risk.** `medium`. **Default escalation (draft).** Auto for first-line steps (ROUTINE_TROUBLESHOOTING). Escalate (ACCOUNT_SPECIFIC) when a specific code, charge or licence has to be looked up, or the steps have failed.
+**Default risk.** `medium`. **Default escalation.** Auto for first-line steps (ROUTINE_TROUBLESHOOTING). Escalate (ACCOUNT_SPECIFIC) when a specific order, code, charge or licence has to be looked up. Escalate (STEPS_FAILED) when the steps have already failed.
 
 **Estimated training count.** ≈ 1,190 (95% range 720 – 1,930; 14 of 150 in the discovery sample).
 
@@ -460,7 +460,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Use the fixed policy reply: support can't discuss or influence enforcement; point to the enforcement site and case review, and explain how to report players. Never speculate about an outcome.
 
-**Default risk.** `medium`. **Default escalation (draft).** Auto with the policy template (GENERAL_INFO). The SAFETY_LEGAL rule escalates threats of harm, minors at risk and doxxing.
+**Default risk.** `medium`. **Default escalation.** Auto with the policy template (GENERAL_INFO). The SAFETY_LEGAL rule escalates threats of harm, minors at risk and doxxing.
 
 **Estimated training count.** ≈ 510 (95% range 240 – 1,080; 6 of 150 in the discovery sample).
 
@@ -508,7 +508,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Answer the factual question from the knowledge base. For suggestions, thank the customer and point to the feedback site. Never speculate on release dates or the roadmap.
 
-**Default risk.** `low`. **Default escalation (draft).** Auto (GENERAL_INFO). OUT_OF_SCOPE when the answer belongs to a third party (a publisher or retailer).
+**Default risk.** `low`. **Default escalation.** Auto (GENERAL_INFO). OUT_OF_SCOPE when the answer belongs to a third party (a publisher or retailer).
 
 **Estimated training count.** ≈ 1,280 (95% range 790 – 2,030; 15 of 150 in the discovery sample).
 
@@ -552,7 +552,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Apologise, acknowledge the history, ask for the one missing detail or offer the right channel, and hand the case to a person.
 
-**Default risk.** `high`. **Default escalation (draft).** Always escalate (REPEAT_CONTACT, or HIGH_ANGER when no repeat contact is stated).
+**Default risk.** `high`. **Default escalation.** Always escalate (REPEAT_CONTACT, or HIGH_ANGER when no repeat contact is stated).
 
 **Estimated training count.** ≈ 510 (95% range 240 – 1,080; 6 of 150 in the discovery sample).
 
@@ -599,7 +599,7 @@ Every exchange gets a state. Only `new_issue` and `issue_followup` carry a prima
 
 **Response strategy.** Ask exactly one targeted clarifying question that names the missing detail (e.g. 'Which console, and what exact error text do you see?'). Never send a generic reply or a guess.
 
-**Default risk.** `low`. **Default escalation (draft).** Auto: the clarification is sent (GENERAL_INFO). Escalate (LOW_CONFIDENCE) if the brand has already asked for clarification in this thread (DRAFT; to be calibrated on dev).
+**Default risk.** `low`. **Default escalation.** Auto: the clarification is sent (GENERAL_INFO). Escalate (LOW_CONFIDENCE) if the brand has already asked this customer for clarification in this thread. Untested on dev: no dev item was vague after a clarification.
 
 **Estimated training count.** ≈ 600 (95% range 290 – 1,190; 7 of 150 in the discovery sample).
 
@@ -644,7 +644,7 @@ Apply in this order: S1–S2 decide the state, T0 picks the primary intent of a 
 
 ## Risk and escalation (a layer on top of intent)
 
-_Escalation policy status: **DRAFT**._
+_Escalation policy status: **FROZEN**._
 
 | level | meaning |
 |---|---|
@@ -657,30 +657,43 @@ _Escalation policy status: **DRAFT**._
 | `account_compromised` | Someone else is using or has taken the account; hacked; unauthorised sign-ins or purchases. | `security` | `high` | `SECURITY` |
 | `harm_or_legal` | Threats of violence or self-harm, minors at risk, doxxing; lawsuits, police, lawyers, regulators. | `legal_threat` | `high` | `SAFETY_LEGAL` |
 | `money_dispute` | Charged twice or without consent, refund refused, money taken. | `billing_dispute` | `high` | `BILLING_DISPUTE` |
-| `repeat_contact` | Says they already contacted support, already did the steps, or have waited days; or has earlier threads. | `repeat_contact_cue`, `prior_contact` | `medium` | `REPEAT_CONTACT` |
-| `strong_anger` | Profanity or abuse aimed at the brand, threats to leave. | `anger` | `medium` | `HIGH_ANGER` |
+| `repeat_contact` | Says they already contacted support about this issue (DM, chat, phone, an earlier unanswered tweet) or have waited days. Raises the risk only; it doesn't escalate on its own. | `prior_contact`, `repeat_contact_cue` (partial) | `medium` | `REPEAT_CONTACT` |
+| `steps_failed` | Says the standard first-line fix for this issue was already tried (by themselves or as advised) and the problem persists. Escalates on every intent; the reason is REPEAT_CONTACT if a repeat contact is also stated. | `repeat_contact_cue` (partial) | `medium` | `STEPS_FAILED` |
+| `strong_anger` | Profanity, insults or abuse aimed at Xbox or support, or a threat to leave. Frustration, sarcasm, an angry emoji or disputing a decision alone don't count. | `anger` | `medium` | `HIGH_ANGER` |
 
-- **DRAFT, not frozen.** These thresholds are calibrated on the 40-item dev set (see the calibration plan) before golden labelling.
+- **FROZEN (2026-09-11)** after calibration on the 40-item dev set (`results/escalation/dev_calibration.md`).
 - `risk_level` = the highest of the primary intent's default risk (`low` for states without an intent) and the risk of every rule that fires.
-- `escalate = yes` if any of these hold: `risk_level` is high; the intent's escalation policy calls for it (e.g. purchases always, account when account-specific, hardware when a repair is needed); `repeat_contact` fires and the customer says the steps already failed; `strong_anger` fires on an intent whose default risk is medium or high; it's `needs_more_context` and the brand has already asked for clarification.
-- `reason_code`, when escalating, is the first match in this order: SECURITY > SAFETY_LEGAL > BILLING_DISPUTE > ACCOUNT_SPECIFIC > REPEAT_CONTACT > HIGH_ANGER > OUT_OF_SCOPE > LOW_CONFIDENCE. When not escalating: ROUTINE_TROUBLESHOOTING for fixes, GENERAL_INFO otherwise.
+- `escalate = yes` if any of these hold:
+- (a) `risk_level` is high.
+- (b) The intent is `purchases_billing_orders` or `support_process_complaint` (always).
+- (c) Account or entitlements, and the fix needs this customer's own account, order, code or licence (ACCOUNT_SPECIFIC).
+- (d) Hardware, and a repair, replacement, warranty or servicing is requested, or a repaired or replaced device still fails (ACCOUNT_SPECIFIC).
+- (e) `steps_failed` fires, on any intent (REPEAT_CONTACT if `repeat_contact` also fires, else STEPS_FAILED).
+- (f) `strong_anger` fires on an intent whose default risk is medium or high (HIGH_ANGER).
+- (g) It's `needs_more_context` and the brand already asked this customer for clarification in the thread (LOW_CONFIDENCE).
+- (h) Phase 7: the classifier's confidence is below the threshold set on dev (LOW_CONFIDENCE).
+- (i) System only: the drafted reply fails validation after its retries (REPLY_FAILED_CHECKS).
+- `repeat_contact` alone does not escalate; it only raises the risk level.
+- `reason_code`, when escalating, is the first match in this order: SECURITY > SAFETY_LEGAL > BILLING_DISPUTE > ACCOUNT_SPECIFIC > REPEAT_CONTACT > STEPS_FAILED > HIGH_ANGER > OUT_OF_SCOPE > LOW_CONFIDENCE > REPLY_FAILED_CHECKS. When not escalating: ROUTINE_TROUBLESHOOTING for fixes, GENERAL_INFO otherwise.
+- Cue `prior_clarification`: the brand asked this customer for missing details earlier in the thread. Brand announcements, answers and troubleshooting steps don't count.
 - These rules apply on top of any intent or state. There are no intents for hacked accounts, anger or threats.
 - Phase 2's `customer_escalation_signals` (keyword cues) map onto these rules as shown in the signal column. They are weak hints only; the labeller decides.
 
-## Escalation calibration plan (dev set)
+## Escalation calibration (dev set)
 
-**Status:** the escalation policy stays DRAFT until this calibration is done. Then it is frozen and recorded in `DECISIONS.md`.
-**Dev set:** 40 holdout exchanges, one per thread, all eval-eligible: 16 random and 24 targeted (4 per behaviour below). Drawn by `scripts/sample_dev.py` into `data/golden/dev_labeling_sheet.csv`. The sheet is blind: which slice each item came from is kept in `dev_sample_key.csv`. Dev is used for tuning only. It is never reported, never used for few-shot examples, and never put in the index.
-**Labelling:** a human labels dev with this codebook: state, intent, secondary intents, risk, escalate, reason, label confidence. The cue columns are yes/no. No model pre-fill, to avoid anchoring.
-**Procedure:** apply the draft combination rules to the labelled intents and cues, and compare the result with the labeller's own `escalate` decision on each item. Change a rule only where the dev evidence disagrees, then record the change and freeze.
-**Behaviours to calibrate:**
-- `strong_anger`: should anger alone escalate a low-risk intent, or only medium/high ones (the current draft)?
-- `repeat_contact`: escalate on any repeat contact, or only when the customer says the steps already failed (the current draft)?
-- Account-specific handling: which `account_access_profile` requests stay auto (how-to), and which need the customer's own account (escalate)?
-- Low-confidence escalation: a threshold on the classifier's confidence. This is set on dev once the classifier exists (Phase 7). Until then, `label_confidence` flags items that are ambiguous even for humans.
-- `needs_more_context` after a prior clarification: escalate the second vague message, or ask once more?
-- Repair / replacement: escalate as soon as a repair is mentioned, or only after first-line steps fail (the current draft)?
-**Then:** sample and label the 200-item golden set from the holdout, excluding every dev thread. This happens only once both the taxonomy and the escalation policy are frozen.
+**Status:** done. The policy above was calibrated on the dev set and frozen on 2026-09-11. The full comparison is in `results/escalation/dev_calibration.md` (`scripts/calibrate_escalation.py`); `DECISIONS.md` records the changes.
+**Dev set:** 40 holdout exchanges, one per thread, all eval-eligible: 16 random and 24 targeted (4 per behaviour below). Drawn blind by `scripts/sample_dev.py` into `data/golden/dev_labeling_sheet.csv`. Dev is used for tuning only. It is never reported, never used for few-shot examples, and never put in the index.
+**Labels:** ChatGPT drafts made with this codebook, reviewed and approved item by item by the project owner. They are not blind human labels (see `DECISIONS.md`). Fixes made after review are recorded in each item's notes.
+**Procedure:** the draft rules were applied to the labelled intents and cues and compared with each item's `escalate` label. A rule was changed only where the dev evidence disagreed.
+**Result:** the draft as written agreed with 37 of 40 labels; the frozen policy agrees with all 40. The one change in behaviour splits `steps_failed` out of `repeat_contact`, so failed steps escalate on every intent (D26, D31, D35). The other changes only tighten the wording.
+**Behaviours:**
+- `strong_anger`: unchanged; it escalates only medium- and high-risk intents. No dev item had anger on a low-risk intent.
+- `repeat_contact`: on its own it does not escalate (D01); failed steps do.
+- Account-specific handling: escalate when this customer's own account, order, code or licence is needed; how-to stays auto. The auto side is untested on dev.
+- Low-confidence escalation: a threshold on the classifier's confidence, set on dev in Phase 7.
+- `needs_more_context` after a prior clarification: escalate. Untested: no dev item was vague after a clarification.
+- Repair / replacement: escalate on an explicit request or after failed steps; a bare 'it broke' stays auto. Dev can't separate the two triggers, because every repair item also had failed steps.
+**Next:** sample and label the 200-item golden set from the holdout, excluding every dev thread.
 
 ## How the golden set will be scored
 
@@ -767,4 +780,6 @@ What the topics can't show:
 
 - **Rare intents:** enforcement, support complaints, purchases and needs_more_context are each ~4–5%. The stratified golden slice should top each up to about 10.
 - **Temporal generalization:** see the event-tied share per intent in the internal fields section. Report golden results split by event-tied vs not.
-- **Language filter leak:** one sampled message was German, so expect a few more.
+- **Language filter leak:** one sampled message was German, and dev item D12 is Portuguese, so expect a few more.
+- **Untested escalation rules:** `needs_more_context` after a clarification, OUT_OF_SCOPE, and account how-to questions staying auto had no dev evidence. Check them on golden.
+- **Escalation volume:** escalating on failed steps (C1) is the main driver outside the always-escalate intents. Watch the precision of STEPS_FAILED escalations on golden.

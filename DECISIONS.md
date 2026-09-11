@@ -142,10 +142,33 @@ comes from. It will be trimmed to the best 10–15 for submission.
 - **[P3] Risk and escalation are an overlay, not intents.** Hacked accounts, anger and threats are
   risk rules applied on top of any intent. `account_access_profile` has default risk medium, not
   high, so general how-to questions can still be auto-handled.
-- **[P3] The escalation policy stays draft until dev calibration.** 40 dev items (16 random + 24
-  targeted at the six behaviours in the codebook) were drawn blind from the holdout. A human
-  labels them without model pre-fill. The golden set is not sampled until the escalation policy
-  is also frozen, and it must exclude every dev thread.
+- **[P3] The escalation policy was calibrated on a 40-item dev set before freezing.** 16 random +
+  24 targeted at the six behaviours in the codebook, drawn blind from the holdout. The golden set
+  is not sampled until the policy is frozen, and it must exclude every dev thread.
+- **[P3] Dev labels are ChatGPT drafts reviewed and approved by the project owner, not blind human
+  labels.** The plan asked for no model pre-fill. For dev, which only tunes the policy, this was
+  accepted. It does make agreement with the draft partly circular, because the drafts applied the
+  draft rules, so the calibration mostly shows that the rules can be applied consistently. Fixes
+  made after review are recorded in each item's `notes`. The golden set should get a blind human
+  first pass, because the judge–human agreement result depends on it.
+- **[P3] Escalation policy frozen after dev calibration (2026-09-11).** Evidence:
+  `results/escalation/dev_calibration.md`, from `scripts/calibrate_escalation.py`.
+  - **C1, the one change in behaviour:** "the steps already failed" is split out of
+    `repeat_contact`. Failed steps escalate on any intent (STEPS_FAILED). A stated repeat contact on
+    its own only raises the risk to medium. Read literally, the draft auto-handled D26, D31 and D35,
+    which the labels escalate. D01 (repeat contact only) is labelled auto.
+  - **C2–C6 only tighten the wording:**
+    - a new `STEPS_FAILED` reason code
+    - `REPLY_FAILED_CHECKS` reserved for the agent's own failed reply validation
+    - `strong_anger` needs profanity, abuse or a threat to leave
+    - explicit hardware-repair and account-specific triggers
+    - a definition of the `prior_clarification` cue
+  - **Untested on dev, kept as drafted:**
+    - a second vague message after a clarification escalates (no dev item was vague after one)
+    - low confidence (a Phase 7 threshold)
+    - OUT_OF_SCOPE
+  - **The main cost of C1 is escalation volume.** Watch the precision of STEPS_FAILED escalations on
+    golden.
 - **[P3] Dev item D12 (`2802886`) is Portuguese and stays in the dev set.** It got past the
   heuristic language filter. Its English function words ("of", "the") come from the game title
   *Symphony of the Night*, so they tie the Portuguese ones ("não", "por") at 2–2, and a tweet is

@@ -1,41 +1,41 @@
 dev_id,record_id,conversation_state,intent,secondary_intents,risk_level,escalate,reason_code,label_confidence,cue_strong_anger,cue_repeat_contact,cue_steps_already_failed,cue_account_specific_action,cue_prior_clarification,cue_repair_or_replacement,cue_account_compromised,cue_harm_or_legal,cue_money_dispute,notes,labeler
-D01,1020642,,,,,,,,,,,,,,,,,,
-D02,1719947,,,,,,,,,,,,,,,,,,
-D03,524027,,,,,,,,,,,,,,,,,,
-D04,2816530,,,,,,,,,,,,,,,,,,
-D05,2507931,,,,,,,,,,,,,,,,,,
-D06,573032,,,,,,,,,,,,,,,,,,
-D07,975537,,,,,,,,,,,,,,,,,,
-D08,2842184,,,,,,,,,,,,,,,,,,
-D09,354841,,,,,,,,,,,,,,,,,,
-D10,2983283,,,,,,,,,,,,,,,,,,
-D11,2796641,,,,,,,,,,,,,,,,,,
-D12,2802886,,,,,,,,,,,,,,,,,,
-D13,702309,,,,,,,,,,,,,,,,,,
-D14,452989,,,,,,,,,,,,,,,,,,
-D15,2700003,,,,,,,,,,,,,,,,,,
-D16,2654357,,,,,,,,,,,,,,,,,,
-D17,636848,,,,,,,,,,,,,,,,,,
-D18,2918999,,,,,,,,,,,,,,,,,,
-D19,2817903,,,,,,,,,,,,,,,,,,
-D20,1660179,,,,,,,,,,,,,,,,,,
-D21,2575885,,,,,,,,,,,,,,,,,,
-D22,2581223,,,,,,,,,,,,,,,,,,
-D23,2710664,,,,,,,,,,,,,,,,,,
-D24,2575909,,,,,,,,,,,,,,,,,,
-D25,2473721,,,,,,,,,,,,,,,,,,
-D26,452971,,,,,,,,,,,,,,,,,,
-D27,2838889,,,,,,,,,,,,,,,,,,
-D28,170589,,,,,,,,,,,,,,,,,,
-D29,2751254,,,,,,,,,,,,,,,,,,
-D30,129544,,,,,,,,,,,,,,,,,,
-D31,2842187,,,,,,,,,,,,,,,,,,
-D32,1757538,,,,,,,,,,,,,,,,,,
-D33,565154,,,,,,,,,,,,,,,,,,
-D34,1352092,,,,,,,,,,,,,,,,,,
-D35,2977831,,,,,,,,,,,,,,,,,,
-D36,516212,,,,,,,,,,,,,,,,,,
-D37,565169,,,,,,,,,,,,,,,,,,
-D38,2856925,,,,,,,,,,,,,,,,,,
-D39,111217,,,,,,,,,,,,,,,,,,
-D40,555039,,,,,,,,,,,,,,,,,,
+D01,1020642,new_issue,entitlements_subscriptions_codes,,medium,no,ROUTINE_TROUBLESHOOTING,high,no,yes,no,no,no,no,no,no,no,"Gold subscription is not being recognized for online play; DM already sent, but no failed troubleshooting is stated.",chatgpt_draft_human_approved
+D02,1719947,new_issue,hardware_devices,,medium,yes,STEPS_FAILED,medium,no,no,yes,no,no,no,no,no,no,Power-up problem persists after reset; escalation for failed basic troubleshooting. [review fix 2026-09-11: reason_code REPLY_FAILED_CHECKS → STEPS_FAILED; C2: REPLY_FAILED_CHECKS is system-only],chatgpt_draft_human_approved
+D03,524027,new_issue,hardware_devices,,medium,no,ROUTINE_TROUBLESHOOTING,high,no,no,no,no,no,no,no,no,no,Random shutdown is a console hardware/system symptom; no prior failed support or repair request is stated.,chatgpt_draft_human_approved
+D04,2816530,social_offtopic,,,low,no,GENERAL_INFO,medium,no,no,no,no,no,no,no,no,no,No clear support request; ambiguous/banter-like reference to gamerscore.,chatgpt_draft_human_approved
+D05,2507931,new_issue,entitlements_subscriptions_codes,,medium,yes,ACCOUNT_SPECIFIC,high,no,yes,no,yes,no,no,no,no,no,Missing preorder items need an account/order lookup; customer already tried chat and the support link failed. [review fix 2026-09-11: secondary_intents support_process_complaint → ∅; support_process_complaint's exclude rule: a complaint about a named issue is carried by the risk rules],chatgpt_draft_human_approved
+D06,573032,new_issue,product_info_feedback,,low,no,GENERAL_INFO,high,no,no,no,no,no,no,no,no,no,General policy/how-to question about Gold and game access.,chatgpt_draft_human_approved
+D07,975537,new_issue,product_info_feedback,,low,no,GENERAL_INFO,high,no,no,no,no,no,no,no,no,no,Request about whether Xbox can be updated before/when received; informational/capability question.,chatgpt_draft_human_approved
+D08,2842184,new_issue,enforcement_safety,,medium,yes,HIGH_ANGER,high,yes,no,no,yes,no,no,no,no,no,Complaint about blocking/report system; enforcement topic plus strong anger.,chatgpt_draft_human_approved
+D09,354841,issue_followup,product_info_feedback,,low,no,GENERAL_INFO,high,no,no,no,no,no,no,no,no,no,Clarified same informational question after the brand's language response.,chatgpt_draft_human_approved
+D10,2983283,issue_followup,account_access_profile,,medium,yes,ACCOUNT_SPECIFIC,medium,no,yes,no,yes,yes,no,no,no,no,Account-linking issue involving the customer's Xbox/Epic identity; brand already asked for more information.,chatgpt_draft_human_approved
+D11,2796641,issue_followup,purchases_billing_orders,,high,yes,BILLING_DISPUTE,high,no,yes,yes,yes,no,no,no,no,yes,Refund was denied by both refund flow and chat; billing/refund dispute is primary. [review fix 2026-09-11: secondary_intents support_process_complaint → ∅; support_process_complaint's exclude rule: a complaint about a named issue is carried by the risk rules],chatgpt_draft_human_approved
+D12,2802886,new_issue,purchases_billing_orders,,high,yes,ACCOUNT_SPECIFIC,medium,no,no,no,yes,no,no,no,no,no,Portuguese; message says a Black Friday game purchase cannot be completed. Kept per dev-set policy.,chatgpt_draft_human_approved
+D13,702309,new_issue,entitlements_subscriptions_codes,product_info_feedback,medium,no,ROUTINE_TROUBLESHOOTING,medium,no,no,no,no,no,no,no,no,no,DLC/pack availability or download issue with an online-service error; treated as entitlement content rather than a transaction.,chatgpt_draft_human_approved
+D14,452989,new_issue,hardware_devices,,medium,yes,ACCOUNT_SPECIFIC,high,no,no,yes,yes,no,yes,no,no,no,Faulty included HDMI cable with explicit replacement request.,chatgpt_draft_human_approved
+D15,2700003,issue_followup,hardware_devices,,medium,yes,REPEAT_CONTACT,high,no,yes,yes,no,yes,no,no,no,no,Remote volume control still fails after the troubleshooting flow and follow-up clarification. [review fix 2026-09-11: reason_code REPLY_FAILED_CHECKS → REPEAT_CONTACT; C2: REPLY_FAILED_CHECKS is system-only; a repeat contact is also stated],chatgpt_draft_human_approved
+D16,2654357,new_issue,product_info_feedback,,low,no,GENERAL_INFO,high,no,no,no,no,no,no,no,no,no,Eligibility/location question about rewards and prize draws.,chatgpt_draft_human_approved
+D17,636848,issue_followup,install_download_update,,medium,yes,REPEAT_CONTACT,high,no,yes,yes,no,yes,no,no,no,no,"Multiple support interactions and all troubleshooting, including factory reset, have failed; second Xbox. [review fix 2026-09-11: secondary_intents support_process_complaint → ∅; support_process_complaint's exclude rule: a complaint about a named issue is carried by the risk rules] [review fix 2026-09-11: reason_code REPLY_FAILED_CHECKS → REPEAT_CONTACT; C2: REPLY_FAILED_CHECKS is system-only; a repeat contact is also stated]",chatgpt_draft_human_approved
+D18,2918999,issue_followup,hardware_devices,,medium,yes,ACCOUNT_SPECIFIC,high,no,yes,yes,yes,no,yes,no,no,no,"Disc drive needs servicing after the support steps already failed. [review fix 2026-09-11: cue_prior_clarification yes → no; C6: the brand gave steps or an answer, not a request for details]",chatgpt_draft_human_approved
+D19,2817903,issue_followup,product_info_feedback,,low,no,GENERAL_INFO,high,no,no,no,no,no,no,no,no,no,"Follow-up clarification about a product feature/compatibility limitation. [review fix 2026-09-11: cue_prior_clarification yes → no; C6: the brand gave steps or an answer, not a request for details]",chatgpt_draft_human_approved
+D20,1660179,new_issue,install_download_update,,low,no,ROUTINE_TROUBLESHOOTING,high,no,no,no,no,no,no,no,no,no,Minimal but unambiguous installation failure.,chatgpt_draft_human_approved
+D21,2575885,new_issue,software_game_app,,low,no,ROUTINE_TROUBLESHOOTING,high,no,no,no,no,no,no,no,no,no,Capture-to-OneDrive feature is a software/app integration problem.,chatgpt_draft_human_approved
+D22,2581223,acknowledgement_closing,,,low,no,GENERAL_INFO,high,no,no,no,no,yes,no,no,no,no,Customer explicitly confirms the purchase issue is fixed and thanks support. [review fix 2026-09-11: cue_prior_clarification no → yes; C6: the brand asked whether the issue was still occurring],chatgpt_draft_human_approved
+D23,2710664,new_issue,purchases_billing_orders,,high,yes,BILLING_DISPUTE,high,no,no,no,yes,no,no,no,no,yes,Refund request; codebook treats refunds as always-escalated billing cases.,chatgpt_draft_human_approved
+D24,2575909,new_issue,needs_more_context,,low,no,GENERAL_INFO,high,no,no,no,no,no,no,no,no,no,Vague request after an announcement; no support issue can be inferred.,chatgpt_draft_human_approved
+D25,2473721,new_issue,software_game_app,,low,no,ROUTINE_TROUBLESHOOTING,high,no,no,no,no,no,no,no,no,no,"Second occurrence of the game crash, but no prior support contact or failed troubleshooting is stated.",chatgpt_draft_human_approved
+D26,452971,new_issue,software_game_app,,medium,yes,STEPS_FAILED,high,no,no,yes,no,no,no,no,no,no,Re-download/reinstall already attempted without resolving the game problem. [review fix 2026-09-11: reason_code REPLY_FAILED_CHECKS → STEPS_FAILED; C2: REPLY_FAILED_CHECKS is system-only],chatgpt_draft_human_approved
+D27,2838889,issue_followup,enforcement_safety,,medium,no,GENERAL_INFO,high,no,yes,no,no,no,no,no,no,no,"Continues the gamer-picture suspension question; no safety/legal trigger. [review fix 2026-09-11: cue_repeat_contact no → yes; 'In case you didn't see this' re-sends an unanswered tweet (assistant reading, delegated by reviewer)]",chatgpt_draft_human_approved
+D28,170589,new_issue,software_game_app,,low,no,ROUTINE_TROUBLESHOOTING,high,no,no,no,no,no,no,no,no,no,Xbox mobile app messaging failure.,chatgpt_draft_human_approved
+D29,2751254,new_issue,enforcement_safety,,medium,yes,HIGH_ANGER,high,yes,no,no,no,no,no,no,no,no,Enforcement/reporting complaint with strong hostile language. [review fix 2026-09-11: secondary_intents support_process_complaint → ∅; support_process_complaint's exclude rule: a complaint about a named issue is carried by the risk rules],chatgpt_draft_human_approved
+D30,129544,issue_followup,connectivity_xbox_live,,low,no,ROUTINE_TROUBLESHOOTING,medium,no,no,no,no,yes,no,no,no,no,Ongoing network/sync issue; customer is providing the requested network-stat details.,chatgpt_draft_human_approved
+D31,2842187,new_issue,software_game_app,,medium,yes,STEPS_FAILED,medium,no,no,yes,no,no,no,no,no,no,"Saved progress not returning in Assassin's Creed Origins; game/software issue. [review fix 2026-09-11: cue_steps_already_failed no → yes, escalate no → yes, reason_code ROUTINE_TROUBLESHOOTING → STEPS_FAILED, risk_level low → medium; 'nothing suggested gets my saved progress bk' = suggested fixes already failed (assistant reading, delegated by reviewer)]",chatgpt_draft_human_approved
+D32,1757538,new_issue,enforcement_safety,,medium,yes,HIGH_ANGER,high,yes,no,no,no,no,no,no,no,no,Ban/enforcement case; policy says auto response unless safety/legal trigger applies. [review fix 2026-09-11: reason_code GENERAL_INFO → HIGH_ANGER; escalate kept as judged; reason made consistent with the anger cue],chatgpt_draft_human_approved
+D33,565154,new_issue,enforcement_safety,account_access_profile,medium,yes,HIGH_ANGER,high,yes,no,no,yes,no,no,no,no,no,Custom gamerpic restriction is enforcement/moderation; strong anger triggers escalation.,chatgpt_draft_human_approved
+D34,1352092,new_issue,hardware_devices,product_info_feedback,medium,no,GENERAL_INFO,medium,no,no,no,no,no,no,no,no,no,"Two issues: offline feature questions plus 'my Xone broke'. T0 selects the higher-risk hardware issue; no repair request/details yet. [review fix 2026-09-11: intent product_info_feedback → hardware_devices, secondary_intents hardware_devices → product_info_feedback; T0: the higher-risk hardware issue is primary, as the note says]",chatgpt_draft_human_approved
+D35,2977831,issue_followup,software_game_app,,medium,yes,STEPS_FAILED,high,no,no,yes,no,no,no,no,no,no,"Power cycle did not resolve the Minecraft issue; customer reports it still occurs. [review fix 2026-09-11: reason_code REPLY_FAILED_CHECKS → STEPS_FAILED; C2: REPLY_FAILED_CHECKS is system-only] [review fix 2026-09-11: cue_prior_clarification yes → no; C6: the brand gave steps or an answer, not a request for details]",chatgpt_draft_human_approved
+D36,516212,new_issue,entitlements_subscriptions_codes,,medium,no,ROUTINE_TROUBLESHOOTING,medium,no,no,no,no,no,no,no,no,no,"Free-weekend access is treated as entitlement/membership availability. [review fix 2026-09-11: cue_prior_clarification yes → no; C6: the brand gave steps or an answer, not a request for details]",chatgpt_draft_human_approved
+D37,565169,new_issue,account_access_profile,,high,yes,SECURITY,high,no,no,no,yes,no,no,yes,no,no,Reports unauthorized IP access to an old Microsoft account; security rule overrides despite customer having changed passwords. [review fix 2026-09-11: cue_account_specific_action ∅ → yes; blank cue filled],chatgpt_draft_human_approved
+D38,2856925,acknowledgement_closing,,,low,no,GENERAL_INFO,high,no,no,no,no,yes,no,no,no,no,Customer explicitly says the network issue is fixed.,chatgpt_draft_human_approved
+D39,111217,new_issue,account_access_profile,,medium,yes,ACCOUNT_SPECIFIC,high,no,no,no,yes,no,no,no,no,no,Repeated sign-outs from the customer's own account; account-specific handling is required.,chatgpt_draft_human_approved
+D40,555039,issue_followup,hardware_devices,,medium,yes,ACCOUNT_SPECIFIC,high,no,yes,yes,yes,yes,yes,no,no,no,"Replacement console still fails after repeated resets; repair/replacement case needs account-specific human handling. [review fix 2026-09-11: secondary_intents purchases_billing_orders → ∅; T0: the card hold is background, not a second request; hardware stays primary]",chatgpt_draft_human_approved

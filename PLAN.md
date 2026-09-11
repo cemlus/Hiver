@@ -318,7 +318,8 @@ _The original Phase 2 plan, kept for the record:_
 **Exit:** regenerates from the raw CSV in minutes; 20 spot-checks look right; split tests pass. **Decision log:** unit of prediction; time-based per-thread split; the outcome heuristic is weak supervision.
 
 ### Phase 3 — Codebook: intent taxonomy + escalation policy
-**Status (2026-09-11):** taxonomy ✅ FROZEN (v1); escalation policy DRAFT until dev calibration.
+**Status (2026-09-11):** taxonomy ✅ FROZEN (v1); escalation policy ✅ FROZEN after dev calibration
+(`results/escalation/dev_calibration.md`).
 
 **Outcome**
 - Codebook `data/codebook.md` and evidence `results/taxonomy/proposal.md` are both rendered from
@@ -335,16 +336,19 @@ _The original Phase 2 plan, kept for the record:_
 - The 150-row coding sample (`data/taxonomy/discovery_sample_coding.csv`) is discovery evidence
   from train, not gold.
 - The name lists are pinned by `tests/test_taxonomy_frozen.py`.
-- **Dev set drawn** (40 holdout items, `scripts/sample_dev.py`) and waiting for human labels. It
-  is kept exactly as drawn. D12 is Portuguese and got past the heuristic language filter: the
+- **Dev set** (40 holdout items, `scripts/sample_dev.py`): labelled as ChatGPT drafts approved by
+  the project owner, then used by `scripts/calibrate_escalation.py` to calibrate escalation. It is
+  kept exactly as drawn. D12 is Portuguese and got past the heuristic language filter: the
   English words came from a game title and tied 2–2. It is labelled, not redrawn.
 
 **Carry forward into later phases**
 - **Phase 4 contracts:** `Intent` has 11 values; add `ConversationState` (4) and `RiskLevel` (3).
   `GoldenExample` gets `conversation_state`, a nullable `intent`, `risk_level`, `escalate`,
   `reason_code`, plus internal `secondary_intents`, `subtype` and `event_tag`. `AgentOutput`
-  predicts state, intent and escalation.
-- **Phase 5:** dev is drawn early (see below). Golden waits for the escalation freeze.
+  predicts state, intent and escalation. `ReasonCode` adds `STEPS_FAILED`; `REPLY_FAILED_CHECKS`
+  is only valid with `triggered_by = validation`.
+- **Phase 5:** both freezes are done, so golden can be sampled, excluding the 40 dev threads. A
+  blind human first pass is recommended (dev labels were ChatGPT-assisted).
 - **Phase 9:** metrics as listed under Phase 9.
 
 _The original Phase 3 plan, kept for the record:_

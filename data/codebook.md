@@ -1,6 +1,6 @@
 # Codebook (v1, 2026-09-11)
 
-> **Taxonomy FROZEN (v1, 2026-09-11): 11 intents and 4 conversation states. The escalation policy is still a DRAFT: it will be calibrated on the 40-item dev set, then frozen. The 200-item golden set is not sampled or labelled until both are frozen.** Generated from `data/taxonomy/taxonomy_v1.yaml` by `scripts/taxonomy_explore.py render`; edit the YAML, not this file. The evidence behind it is in `results/taxonomy/proposal.md`.
+> **Taxonomy FROZEN (v1, 2026-09-11): 11 intents and 4 conversation states. Escalation policy FROZEN (2026-09-11) after calibration on the 40-item dev set. The 200-item golden set is labelled against this version.** Generated from `data/taxonomy/taxonomy_v1.yaml` by `scripts/taxonomy_explore.py render`; edit the YAML, not this file. The evidence behind it is in `results/taxonomy/proposal.md`.
 
 > **Evidence status.** The 150 exchanges in `data/taxonomy/discovery_sample_coding.csv` are **taxonomy discovery evidence, not the evaluation gold set.** One person (the assistant, while drafting) coded them to find and size candidate intents. They come from the **train** split, so they can never enter dev or golden. The golden set will be sampled from the holdout split and labelled against the frozen codebook. Counts derived from this sample are rough estimates.
 
@@ -13,7 +13,7 @@
 | `secondary_intents` | optional, internal, never scored | The other intent(s) of a multi-issue message, separated by `;`. Each must have a default risk no higher than the primary's (that's what T0 guarantees). |
 | `risk_level` | always | `low` / `medium` / `high`. Start from the primary intent's default risk (`low` for states without an intent), then apply the risk rules; the highest wins. |
 | `escalate` | always, scored | `yes` / `no`, from the escalation rules. It is decided separately from the intent. |
-| `reason_code` | always | Escalation: SECURITY, SAFETY_LEGAL, BILLING_DISPUTE, ACCOUNT_SPECIFIC, REPEAT_CONTACT, HIGH_ANGER, OUT_OF_SCOPE, LOW_CONFIDENCE, REPLY_FAILED_CHECKS. Auto: ROUTINE_TROUBLESHOOTING, GENERAL_INFO. |
+| `reason_code` | always | Escalation: SECURITY, SAFETY_LEGAL, BILLING_DISPUTE, ACCOUNT_SPECIFIC, REPEAT_CONTACT, STEPS_FAILED, HIGH_ANGER, OUT_OF_SCOPE, LOW_CONFIDENCE. Auto: ROUTINE_TROUBLESHOOTING, GENERAL_INFO. REPLY_FAILED_CHECKS is set only by the agent when its own drafted reply fails validation; labellers never use it. |
 | `subtype, event_tag` | optional, internal, never scored | Analysis notes only. |
 
 ## Procedure
@@ -22,7 +22,7 @@
 2. Choose `conversation_state`. Apply S1 and S2 when unsure. `acknowledgement_closing` needs **no unresolved issue left**.
 3. If the state carries an intent, choose one primary intent from the definitions. If several issues are raised, T0 picks the primary and the rest go in `secondary_intents`. If two intents fit one issue, apply T1–T11 in order. Use `needs_more_context` only through T12.
 4. Set `risk_level`: start from the primary intent's default risk, apply every risk rule that fires, and keep the highest.
-5. Set `escalate` and `reason_code` from the escalation combination rules (still DRAFT; see the calibration plan).
+5. Set `escalate` and `reason_code` from the escalation combination rules.
 6. Optionally note `subtype` and `event_tag`.
 
 ## Conversation states
@@ -54,7 +54,7 @@ The customer can't reach Xbox Live or a game's online service, or their online s
 - **Include:** Xbox Live or game servers down, unreachable or 'failed to allocate'; outage and status questions; Disconnects, lag, NAT type, lobby or matchmaking failures; Party chat that won't connect, drops people, or has no audio because of connection or privacy settings; Network errors during setup (can't get online)
 - **Exclude:** Credential problems (forgotten password, recovery, account creation) → `account_access_profile`; 'Can't play online, it says I need Gold' → `entitlements_subscriptions_codes`; An app or game misbehaving while online works, and party menu/UI glitches → `software_game_app`
 - **Response strategy:** Check for a known outage first and point to the status page. Otherwise give network troubleshooting: power cycle the console and router, check NAT and detailed network stats, wired vs Wi-Fi.
-- **Default risk:** `low`. **Default escalation (draft):** Auto (ROUTINE_TROUBLESHOOTING, or GENERAL_INFO for outages). Escalate on REPEAT_CONTACT when the standard steps have already failed.
+- **Default risk:** `low`. **Default escalation:** Auto (ROUTINE_TROUBLESHOOTING, or GENERAL_INFO for outages). Escalate (STEPS_FAILED) when the standard steps have already failed.
 - **Examples:**
 - `332201` · first contact
   - **customer:** error 0x800c0005 when joining any party I have open nat wired connection and fully rebooted everything
@@ -70,7 +70,7 @@ Getting software onto the console fails or stalls: game or app downloads and ins
 - **Include:** 'Installation stopped', downloads stuck or slow, queue problems; Console or game updates that fail, loop or error; Games deleted or needing reinstall after an update; storage-full errors; Disc games that won't install
 - **Exclude:** Installed content that crashes or won't start → `software_game_app`; Owned content the store won't let the customer get → `entitlements_subscriptions_codes`; The disc drive not reading any disc → `hardware_devices`
 - **Response strategy:** Give install and update troubleshooting (clear local storage, offline system update, cancel and reinstall, check storage and the queue), or point to a known publisher-side issue.
-- **Default risk:** `low`. **Default escalation (draft):** Auto (ROUTINE_TROUBLESHOOTING). Escalate on REPEAT_CONTACT when an update has bricked the console and the steps have failed.
+- **Default risk:** `low`. **Default escalation:** Auto (ROUTINE_TROUBLESHOOTING). Escalate (STEPS_FAILED) when the standard steps have already failed, e.g. an update that bricked the console.
 - **Examples:**
 - `903420` · first contact
   - **customer:** Guys I'm having major issues installing games on my Xbox One, Keep getting Installation stopped, but there's space on drive
@@ -86,7 +86,7 @@ A physical device misbehaves: console power, shutdowns, heat or noise, disc driv
 - **Include:** Console won't power on, shuts down, has no signal, green dots, fan noise; Disc drive won't read discs or scratches them; Blu-ray playback errors that point at the drive; Controllers that won't pair, disconnect, desync, or have faulty buttons; headset and mic problems; External drives not detected; device registration and warranty
 - **Exclude:** One game or app freezing while everything else works → `software_game_app`; Wrong item in the box, delivery or retailer problems → `purchases_billing_orders`
 - **Response strategy:** Give device troubleshooting (power cycle, another outlet, re-pair and update the controller, check the drive). If the device is faulty, route to the online repair or replacement process.
-- **Default risk:** `medium`. **Default escalation (draft):** Auto for first-line steps (ROUTINE_TROUBLESHOOTING). Escalate (ACCOUNT_SPECIFIC) when a repair, replacement or warranty decision is needed, or the steps have already failed.
+- **Default risk:** `medium`. **Default escalation:** Auto for first-line steps (ROUTINE_TROUBLESHOOTING), including a bare 'it broke' with no request: give the steps and ask for the symptom. Escalate (ACCOUNT_SPECIFIC) when the customer asks for a repair, replacement, warranty or servicing, or a repaired or replaced device still fails. Escalate (STEPS_FAILED) when the first-line steps have already failed.
 - **Examples:**
 - `60195` · follow-up
   - _customer_: to Elizabeth from @user I don't know who you are but difficult to receive this kind of help 🙏💪🏽💪🏽🥇
@@ -108,7 +108,7 @@ Installed software misbehaves: a game or app crashes, won't launch or has a bug;
 - **Include:** A specific game or app crashes, freezes, won't open, or shows an error code; Dashboard/Guide UI broken or slow after an update; notifications, messages, keyboard; Achievements not unlocking; in-game content or credits missing because of a bug; Store or Xbox app crashing (the app itself, not a purchase)
 - **Exclude:** Download or installation failures → `install_download_update`; Can't reach Live or game servers → `connectivity_xbox_live`; Paid content missing → `entitlements_subscriptions_codes`
 - **Response strategy:** Give app or game troubleshooting (power cycle, remove and re-add the profile, uninstall and reinstall, check whether the console is in the Insider preview). Point to the developer or publisher for game-side bugs and patches.
-- **Default risk:** `low`. **Default escalation (draft):** Auto (ROUTINE_TROUBLESHOOTING). Escalate on REPEAT_CONTACT when the steps have already failed; OUT_OF_SCOPE (developer) for patch timelines.
+- **Default risk:** `low`. **Default escalation:** Auto (ROUTINE_TROUBLESHOOTING). Escalate (STEPS_FAILED) when the steps have already failed; OUT_OF_SCOPE (developer) for patch timelines.
 - **Examples:**
 - `966038` · first contact
   - **customer:** why is YouTube not working on Xbox one console???
@@ -128,7 +128,7 @@ The customer's Microsoft/Xbox account itself: signing in with their credentials,
 - **Include:** Can't sign in to *my* account, password or email recovery, account creation errors; Gamertag changes and availability, email alias, tenure or profile data; Child account rules and family settings; Account hacked or used by someone else (the SECURITY rule applies)
 - **Exclude:** Service-wide sign-in outages → `connectivity_xbox_live`; Home Xbox and licences → `entitlements_subscriptions_codes`; Another player's conduct → `enforcement_safety`
 - **Response strategy:** Link the self-service guide (recovery, alias, gamertag, family settings). Fixes that touch the customer's own account need identity verification, so hand off to chat or phone support.
-- **Default risk:** `medium`. **Default escalation (draft):** Escalate (ACCOUNT_SPECIFIC) when the fix needs the customer's own account, which is most cases. Auto (GENERAL_INFO) for general how-to questions such as child-account rules.
+- **Default risk:** `medium`. **Default escalation:** Escalate (ACCOUNT_SPECIFIC) when the fix needs someone to see or change this customer's own account (sign-in failures on their account, linked accounts, gamertag or profile changes that fail), which is most cases. Auto (GENERAL_INFO) for general how-to or policy questions such as child-account rules.
 - **Examples:**
 - `1678269` · first contact
   - **customer:** can’t sign in still or use any apps I even restarted my system and now can’t fully get my account back. It’s been 4 days now
@@ -146,7 +146,7 @@ The money or the order: purchases that fail, unexpected or duplicate charges, re
 - **Include:** Purchase fails with a payment error; payment method problems; Charged twice or unexpectedly; refund requests; sale price not honoured; Pre-order delivery or shipment; wrong item in the box; retailer issues
 - **Exclude:** Paid, but the game, membership or code isn't showing → `entitlements_subscriptions_codes` (T5); Policy questions with no problem ('why does a free game need a card?') → `product_info_feedback`
 - **Response strategy:** Acknowledge, share generic tips if relevant (check the payment info, try the web store), then route charges, refunds and orders to billing/chat support, and retailer orders to the retailer.
-- **Default risk:** `high`. **Default escalation (draft):** Always escalate (BILLING_DISPUTE for charges and refunds, otherwise ACCOUNT_SPECIFIC). Generic tips may go in the reply, but a person owns the case.
+- **Default risk:** `high`. **Default escalation:** Always escalate (BILLING_DISPUTE for charges and refunds, otherwise ACCOUNT_SPECIFIC). Generic tips may go in the reply, but a person owns the case.
 - **Examples:**
 - `917784` · first contact
   - **customer:** This is what it says when I'm trying to buy the Friday the 13th 8 movie collection. HELP <URL>
@@ -163,7 +163,7 @@ Something the customer is entitled to isn't recognised or delivered: Gold / Game
 - **Include:** Gold or Game Pass bought or active but not recognised; trial questions; Codes or gift cards that won't redeem; beta or early-access codes; Pre-order bonuses, DLC or season-pass items, or purchased games missing from the library; Home Xbox changes, game sharing, licences for owned games
 - **Exclude:** Payment failures, double charges, refunds → `purchases_billing_orders`; Bare error codes unrelated to redemption → `software_game_app` / `connectivity_xbox_live`
 - **Response strategy:** Give entitlement troubleshooting (check subscriptions and order history, remove and re-add the profile, power cycle, follow the redemption guide). Hand off if it's still missing.
-- **Default risk:** `medium`. **Default escalation (draft):** Auto for first-line steps (ROUTINE_TROUBLESHOOTING). Escalate (ACCOUNT_SPECIFIC) when a specific code, charge or licence has to be looked up, or the steps have failed.
+- **Default risk:** `medium`. **Default escalation:** Auto for first-line steps (ROUTINE_TROUBLESHOOTING). Escalate (ACCOUNT_SPECIFIC) when a specific order, code, charge or licence has to be looked up. Escalate (STEPS_FAILED) when the steps have already failed.
 - **Examples:**
 - `1649377` · first contact
   - **customer:** Preordered COD WW2 and I️ have the preorder bonuses installed but haven’t received them in game plz help
@@ -179,7 +179,7 @@ Suspensions, bans and enforcement messages; reports of other players' conduct (h
 - **Include:** 'Why was I banned or suspended?', appeals, enforcement notices; Reporting another player, harassment, 'why wasn't action taken?'; Rejected gamerpics or content; code-of-conduct questions
 - **Exclude:** The customer's own account being hacked → `account_access_profile`; Anger at support with no enforcement topic → `support_process_complaint`
 - **Response strategy:** Use the fixed policy reply: support can't discuss or influence enforcement; point to the enforcement site and case review, and explain how to report players. Never speculate about an outcome.
-- **Default risk:** `medium`. **Default escalation (draft):** Auto with the policy template (GENERAL_INFO). The SAFETY_LEGAL rule escalates threats of harm, minors at risk and doxxing.
+- **Default risk:** `medium`. **Default escalation:** Auto with the policy template (GENERAL_INFO). The SAFETY_LEGAL rule escalates threats of harm, minors at risk and doxxing.
 - **Examples:**
 - `1298728` · first contact
   - **customer:** kinda fed up of Xbox as a company now they have banned me for the 4th time now stupid and each time is 2 week bans
@@ -196,7 +196,7 @@ Questions about how things work or what's available, and feedback or feature req
 - **Include:** How-to and 'does X support Y' questions (1080p streaming, external SSD, setup without internet); Backward-compatibility and content availability requests; Feature requests and negative opinions on design or updates; Policy questions (why a payment method is needed, trial limits in general)
 - **Exclude:** The customer reports that something is failing → the matching issue intent (T10); Praise with no request → `social_offtopic` state (S2)
 - **Response strategy:** Answer the factual question from the knowledge base. For suggestions, thank the customer and point to the feedback site. Never speculate on release dates or the roadmap.
-- **Default risk:** `low`. **Default escalation (draft):** Auto (GENERAL_INFO). OUT_OF_SCOPE when the answer belongs to a third party (a publisher or retailer).
+- **Default risk:** `low`. **Default escalation:** Auto (GENERAL_INFO). OUT_OF_SCOPE when the answer belongs to a third party (a publisher or retailer).
 - **Examples:**
 - `1595815` · first contact
   - **customer:** The Xbox One X has faster load times from the internal HDD. Will I still benefit from using an external SSD?
@@ -215,7 +215,7 @@ The message is mainly about the support experience, not a product problem: unans
 - **Include:** 'Still waiting for help', 'chatted 4 times, still no solution'; Complaints about an agent or phone support; 'are you going to help me or not?'; Asks for another channel because the offered one doesn't work for them
 - **Exclude:** A complaint that names a concrete product issue → that issue's intent, with the REPEAT_CONTACT / HIGH_ANGER risk rules; Anger about bans → `enforcement_safety` (T8); Vague help requests without a complaint about support → `needs_more_context` (T9)
 - **Response strategy:** Apologise, acknowledge the history, ask for the one missing detail or offer the right channel, and hand the case to a person.
-- **Default risk:** `high`. **Default escalation (draft):** Always escalate (REPEAT_CONTACT, or HIGH_ANGER when no repeat contact is stated).
+- **Default risk:** `high`. **Default escalation:** Always escalate (REPEAT_CONTACT, or HIGH_ANGER when no repeat contact is stated).
 - **Examples:**
 - `414172` · first contact
   - **customer:** Chatted in 4 times still no solution @user @user @user And no answer on my forum post! <URL>
@@ -233,7 +233,7 @@ Even with the available thread context, the support issue can't be determined co
 - **Include:** A bare help request, image or link only: 'Any ideas or help? <URL>', 'Hello? Need assistance'; 'Having the same issues too' with no thread to inherit from; A pointer to an earlier question that isn't in the data; frustration with a screenshot only
 - **Exclude:** Follow-ups whose issue is in the context → the thread's intent (`issue_followup`); Complaints about support itself → `support_process_complaint` (T9)
 - **Response strategy:** Ask exactly one targeted clarifying question that names the missing detail (e.g. 'Which console, and what exact error text do you see?'). Never send a generic reply or a guess.
-- **Default risk:** `low`. **Default escalation (draft):** Auto: the clarification is sent (GENERAL_INFO). Escalate (LOW_CONFIDENCE) if the brand has already asked for clarification in this thread (DRAFT; to be calibrated on dev).
+- **Default risk:** `low`. **Default escalation:** Auto: the clarification is sent (GENERAL_INFO). Escalate (LOW_CONFIDENCE) if the brand has already asked this customer for clarification in this thread. Untested on dev: no dev item was vague after a clarification.
 - **Examples:**
 - `743704` · first contact
   - **customer:** Any ideas or help? <URL>
@@ -264,7 +264,7 @@ Apply in this order: S1–S2 decide the state, T0 picks the primary intent of a 
 
 ## Risk and escalation rules
 
-_Escalation policy status: **DRAFT**._
+_Escalation policy status: **FROZEN**._
 
 | level | meaning |
 |---|---|
@@ -277,30 +277,43 @@ _Escalation policy status: **DRAFT**._
 | `account_compromised` | Someone else is using or has taken the account; hacked; unauthorised sign-ins or purchases. | `security` | `high` | `SECURITY` |
 | `harm_or_legal` | Threats of violence or self-harm, minors at risk, doxxing; lawsuits, police, lawyers, regulators. | `legal_threat` | `high` | `SAFETY_LEGAL` |
 | `money_dispute` | Charged twice or without consent, refund refused, money taken. | `billing_dispute` | `high` | `BILLING_DISPUTE` |
-| `repeat_contact` | Says they already contacted support, already did the steps, or have waited days; or has earlier threads. | `repeat_contact_cue`, `prior_contact` | `medium` | `REPEAT_CONTACT` |
-| `strong_anger` | Profanity or abuse aimed at the brand, threats to leave. | `anger` | `medium` | `HIGH_ANGER` |
+| `repeat_contact` | Says they already contacted support about this issue (DM, chat, phone, an earlier unanswered tweet) or have waited days. Raises the risk only; it doesn't escalate on its own. | `prior_contact`, `repeat_contact_cue` (partial) | `medium` | `REPEAT_CONTACT` |
+| `steps_failed` | Says the standard first-line fix for this issue was already tried (by themselves or as advised) and the problem persists. Escalates on every intent; the reason is REPEAT_CONTACT if a repeat contact is also stated. | `repeat_contact_cue` (partial) | `medium` | `STEPS_FAILED` |
+| `strong_anger` | Profanity, insults or abuse aimed at Xbox or support, or a threat to leave. Frustration, sarcasm, an angry emoji or disputing a decision alone don't count. | `anger` | `medium` | `HIGH_ANGER` |
 
-- **DRAFT, not frozen.** These thresholds are calibrated on the 40-item dev set (see the calibration plan) before golden labelling.
+- **FROZEN (2026-09-11)** after calibration on the 40-item dev set (`results/escalation/dev_calibration.md`).
 - `risk_level` = the highest of the primary intent's default risk (`low` for states without an intent) and the risk of every rule that fires.
-- `escalate = yes` if any of these hold: `risk_level` is high; the intent's escalation policy calls for it (e.g. purchases always, account when account-specific, hardware when a repair is needed); `repeat_contact` fires and the customer says the steps already failed; `strong_anger` fires on an intent whose default risk is medium or high; it's `needs_more_context` and the brand has already asked for clarification.
-- `reason_code`, when escalating, is the first match in this order: SECURITY > SAFETY_LEGAL > BILLING_DISPUTE > ACCOUNT_SPECIFIC > REPEAT_CONTACT > HIGH_ANGER > OUT_OF_SCOPE > LOW_CONFIDENCE. When not escalating: ROUTINE_TROUBLESHOOTING for fixes, GENERAL_INFO otherwise.
+- `escalate = yes` if any of these hold:
+- (a) `risk_level` is high.
+- (b) The intent is `purchases_billing_orders` or `support_process_complaint` (always).
+- (c) Account or entitlements, and the fix needs this customer's own account, order, code or licence (ACCOUNT_SPECIFIC).
+- (d) Hardware, and a repair, replacement, warranty or servicing is requested, or a repaired or replaced device still fails (ACCOUNT_SPECIFIC).
+- (e) `steps_failed` fires, on any intent (REPEAT_CONTACT if `repeat_contact` also fires, else STEPS_FAILED).
+- (f) `strong_anger` fires on an intent whose default risk is medium or high (HIGH_ANGER).
+- (g) It's `needs_more_context` and the brand already asked this customer for clarification in the thread (LOW_CONFIDENCE).
+- (h) Phase 7: the classifier's confidence is below the threshold set on dev (LOW_CONFIDENCE).
+- (i) System only: the drafted reply fails validation after its retries (REPLY_FAILED_CHECKS).
+- `repeat_contact` alone does not escalate; it only raises the risk level.
+- `reason_code`, when escalating, is the first match in this order: SECURITY > SAFETY_LEGAL > BILLING_DISPUTE > ACCOUNT_SPECIFIC > REPEAT_CONTACT > STEPS_FAILED > HIGH_ANGER > OUT_OF_SCOPE > LOW_CONFIDENCE > REPLY_FAILED_CHECKS. When not escalating: ROUTINE_TROUBLESHOOTING for fixes, GENERAL_INFO otherwise.
+- Cue `prior_clarification`: the brand asked this customer for missing details earlier in the thread. Brand announcements, answers and troubleshooting steps don't count.
 - These rules apply on top of any intent or state. There are no intents for hacked accounts, anger or threats.
 - Phase 2's `customer_escalation_signals` (keyword cues) map onto these rules as shown in the signal column. They are weak hints only; the labeller decides.
 
-## Escalation calibration plan (dev set)
+## Escalation calibration (dev set)
 
-**Status:** the escalation policy stays DRAFT until this calibration is done. Then it is frozen and recorded in `DECISIONS.md`.
-**Dev set:** 40 holdout exchanges, one per thread, all eval-eligible: 16 random and 24 targeted (4 per behaviour below). Drawn by `scripts/sample_dev.py` into `data/golden/dev_labeling_sheet.csv`. The sheet is blind: which slice each item came from is kept in `dev_sample_key.csv`. Dev is used for tuning only. It is never reported, never used for few-shot examples, and never put in the index.
-**Labelling:** a human labels dev with this codebook: state, intent, secondary intents, risk, escalate, reason, label confidence. The cue columns are yes/no. No model pre-fill, to avoid anchoring.
-**Procedure:** apply the draft combination rules to the labelled intents and cues, and compare the result with the labeller's own `escalate` decision on each item. Change a rule only where the dev evidence disagrees, then record the change and freeze.
-**Behaviours to calibrate:**
-- `strong_anger`: should anger alone escalate a low-risk intent, or only medium/high ones (the current draft)?
-- `repeat_contact`: escalate on any repeat contact, or only when the customer says the steps already failed (the current draft)?
-- Account-specific handling: which `account_access_profile` requests stay auto (how-to), and which need the customer's own account (escalate)?
-- Low-confidence escalation: a threshold on the classifier's confidence. This is set on dev once the classifier exists (Phase 7). Until then, `label_confidence` flags items that are ambiguous even for humans.
-- `needs_more_context` after a prior clarification: escalate the second vague message, or ask once more?
-- Repair / replacement: escalate as soon as a repair is mentioned, or only after first-line steps fail (the current draft)?
-**Then:** sample and label the 200-item golden set from the holdout, excluding every dev thread. This happens only once both the taxonomy and the escalation policy are frozen.
+**Status:** done. The policy above was calibrated on the dev set and frozen on 2026-09-11. The full comparison is in `results/escalation/dev_calibration.md` (`scripts/calibrate_escalation.py`); `DECISIONS.md` records the changes.
+**Dev set:** 40 holdout exchanges, one per thread, all eval-eligible: 16 random and 24 targeted (4 per behaviour below). Drawn blind by `scripts/sample_dev.py` into `data/golden/dev_labeling_sheet.csv`. Dev is used for tuning only. It is never reported, never used for few-shot examples, and never put in the index.
+**Labels:** ChatGPT drafts made with this codebook, reviewed and approved item by item by the project owner. They are not blind human labels (see `DECISIONS.md`). Fixes made after review are recorded in each item's notes.
+**Procedure:** the draft rules were applied to the labelled intents and cues and compared with each item's `escalate` label. A rule was changed only where the dev evidence disagreed.
+**Result:** the draft as written agreed with 37 of 40 labels; the frozen policy agrees with all 40. The one change in behaviour splits `steps_failed` out of `repeat_contact`, so failed steps escalate on every intent (D26, D31, D35). The other changes only tighten the wording.
+**Behaviours:**
+- `strong_anger`: unchanged; it escalates only medium- and high-risk intents. No dev item had anger on a low-risk intent.
+- `repeat_contact`: on its own it does not escalate (D01); failed steps do.
+- Account-specific handling: escalate when this customer's own account, order, code or licence is needed; how-to stays auto. The auto side is untested on dev.
+- Low-confidence escalation: a threshold on the classifier's confidence, set on dev in Phase 7.
+- `needs_more_context` after a prior clarification: escalate. Untested: no dev item was vague after a clarification.
+- Repair / replacement: escalate on an explicit request or after failed steps; a bare 'it broke' stays auto. Dev can't separate the two triggers, because every repair item also had failed steps.
+**Next:** sample and label the 200-item golden set from the holdout, excluding every dev thread.
 
 ## How labels are scored
 

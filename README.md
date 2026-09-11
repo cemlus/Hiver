@@ -5,9 +5,9 @@ classifies each customer tweet's intent, drafts a reply grounded in how the bran
 before, and decides whether to auto-handle or escalate (with a reason). The repo also contains
 the evaluation harness that measures how far the agent can be trusted.
 
-> **Status:** Phases 0–2 complete. Phase 3: taxonomy **frozen** (11 intents, 4 conversation
-> states); escalation policy still draft, pending dev calibration. Brand: **XboxSupport**. See
-> [Build progress](#build-progress).
+> **Status:** Phases 0–3 complete. Taxonomy **frozen** (11 intents, 4 conversation states) and
+> escalation policy **frozen** after calibration on the 40-item dev set. Next: the golden set.
+> Brand: **XboxSupport**. See [Build progress](#build-progress).
 
 ## Quickstart
 
@@ -68,12 +68,14 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
     11 frozen primary intents.
   - `secondary_intents`, `subtype` and `event_tag` are internal and never scored.
   - The name lists are pinned by `tests/test_taxonomy_frozen.py`.
-- **Freeze order.** Taxonomy (frozen) → escalation policy (calibrated on the 40-item dev set,
-  then frozen) → only then sample and label the 200-item golden set, excluding all dev threads.
+- **Freeze order.** Taxonomy (frozen) → escalation policy (calibrated on the 40-item dev set and
+  frozen; [`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md)) → next,
+  sample and label the 200-item golden set, excluding all dev threads.
 - **Dev set.** `scripts/sample_dev.py` drew 40 holdout items (16 random + 24 targeted at the
   escalation behaviours to calibrate) into `data/golden/dev_labeling_sheet.csv`. The sheet is
-  blind; `dev_sample_key.csv` records each item's slice and thread. It gets human labels only, no
-  model pre-fill, and is never a reported result. D12 is Portuguese; it got past the heuristic
+  blind; `dev_sample_key.csv` records each item's slice and thread. Its labels are ChatGPT drafts
+  reviewed and approved by the project owner (see `DECISIONS.md`), and it is never a reported
+  result. D12 is Portuguese; it got past the heuristic
   language filter and is kept as drawn (see `DECISIONS.md`).
 - **Metrics** (bootstrap 95% CIs, reported per golden slice):
   - Conversation state: accuracy and macro-F1.
@@ -98,7 +100,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 | `src/integrations/` | Optional Postgres / Redis / Slack adapters (never used by eval) |
 | `src/dataprep/` | Ingestion, cleaning, splits, weak labels, taxonomy exploration |
 | `src/eval/` | Baselines, metrics, LLM judge, judge–human agreement |
-| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison) and `validate_brand.py` (usable-data check), which need `data/raw/twcs.csv`; `taxonomy_explore.py` (discovery sample, topics, codebook render); `sample_dev.py` (the 40-item dev set) |
+| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison) and `validate_brand.py` (usable-data check), which need `data/raw/twcs.csv`; `taxonomy_explore.py` (discovery sample, topics, codebook render); `sample_dev.py` (the 40-item dev set); `calibrate_escalation.py` (draft vs proposed escalation policy on dev labels) |
 | `data/taxonomy/` | Taxonomy spec (`taxonomy_v1.yaml`) and the discovery coding sample (not gold) |
 | `data/` | Processed subsample, golden/dev sets, codebook, LLM cache |
 | `prompts/` | Prompt templates |
@@ -112,7 +114,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 - [x] Phase 1: EDA & brand selection (XboxSupport; [`results/eda.md`](results/eda.md), [`results/brand_validation.md`](results/brand_validation.md))
 - [x] Phase 2: ingestion, cleaning, splits, weak outcome labels ([`results/phase2_data_report.md`](results/phase2_data_report.md))
 - [x] Phase 3a: intent taxonomy frozen ([`data/codebook.md`](data/codebook.md), [`results/taxonomy/proposal.md`](results/taxonomy/proposal.md))
-- [ ] Phase 3b: escalation policy calibrated on the dev set and frozen
+- [x] Phase 3b: escalation policy calibrated on the dev set and frozen ([`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md))
 - [ ] Phase 4: typed contracts
 - [ ] Phase 5: dev + golden labelling
 - [ ] Phase 6: weak supervision & baselines

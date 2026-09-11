@@ -332,7 +332,7 @@ def cmd_render(train: pd.DataFrame) -> None:
         f"Estimates are `k / {n} × {n_train:,}` train exchanges (95% Wilson range); the sample is too "
         f"small to resolve intents under ~2%. {n_intent} of the {n} sampled exchanges carry an "
         "intent; the rest are closing or social messages (see conversation states). Default risk and "
-        "escalation are a separate layer and are still DRAFT.",
+        f"escalation are a separate layer (policy status: {spec['escalation_status']}).",
         "",
         *final_table(spec, est, top),
         "",
@@ -359,7 +359,7 @@ def cmd_render(train: pd.DataFrame) -> None:
             "**Exclude**", *[f"- {x}" for x in it["exclude"]], "",
             f"**Response strategy.** {it['strategy']}",
             "",
-            f"**Default risk.** `{it['default_risk']}`. **Default escalation (draft).** {it['escalation']}",
+            f"**Default risk.** `{it['default_risk']}`. **Default escalation.** {it['escalation']}",
             "",
             f"**Estimated training count.** {e['est']} (95% range {e['range']}; {e['k']} of {n} in the "
             "discovery sample).",
@@ -374,7 +374,7 @@ def cmd_render(train: pd.DataFrame) -> None:
               *examples_block(it["examples"], by_id), ""]
     p += ["## Deterministic tie-break rules", "", *tie_break_lines(spec, seen), "",
           "## Risk and escalation (a layer on top of intent)", "", *risk_lines(spec), "",
-          "## Escalation calibration plan (dev set)", "", *spec["calibration"], "",
+          "## Escalation calibration (dev set)", "", *spec["calibration"], "",
           "## How the golden set will be scored", "", *spec["scoring"], "",
           "## Internal fields: secondary intents, subtypes, events", "", *internal_lines(spec, coding), "",
           "## Exploratory topic evidence", "", *spec["topic_evidence"], "",
@@ -419,14 +419,14 @@ def cmd_render(train: pd.DataFrame) -> None:
             "- **Include:** " + "; ".join(it["include"]),
             "- **Exclude:** " + "; ".join(it["exclude"]),
             f"- **Response strategy:** {it['strategy']}",
-            f"- **Default risk:** `{it['default_risk']}`. **Default escalation (draft):** {it['escalation']}",
+            f"- **Default risk:** `{it['default_risk']}`. **Default escalation:** {it['escalation']}",
             "- **Examples:**",
             *examples_block(it["examples"][:3], by_id),
             "",
         ]
     c += ["## Tie-break rules (deterministic, in order)", "", *tie_break_lines(spec, seen), "",
           "## Risk and escalation rules", "", *risk_lines(spec), "",
-          "## Escalation calibration plan (dev set)", "", *spec["calibration"], "",
+          "## Escalation calibration (dev set)", "", *spec["calibration"], "",
           "## How labels are scored", "", *spec["scoring"], "",
           "## Internal fields (never scored)", "",
           "- `secondary_intents`: the other intent(s) of a multi-issue message (T0 picks the primary).",
