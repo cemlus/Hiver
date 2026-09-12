@@ -6,7 +6,7 @@ before, and decides whether to auto-handle or escalate (with a reason). The repo
 the evaluation harness that measures how far the agent can be trusted.
 
 > **Status:** Phases 0–3 complete. Taxonomy **frozen** (11 intents, 4 conversation states) and
-> escalation policy **frozen** after calibration on the 40-item dev set. Golden set sampled; awaiting human labels.
+> escalation policy **frozen** after calibration on the 40-item dev set. Golden set labelled by hand and locked.
 > Brand: **XboxSupport**. See [Build progress](#build-progress).
 
 ## Quickstart
@@ -82,8 +82,10 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 - **Golden set.** `scripts/sample_golden.py` drew 200 holdout items (120 random + 80 stratified)
   into the blind sheet `data/golden/golden_labeling_sheet.csv`. It excludes every dev thread and
   every near-duplicate of a train or dev message.
-  - The project owner labels it first, without seeing model labels, and the finished sheet is
-    locked.
+  - The project owner labelled all 200 items first, without seeing model labels, and the sheet is
+    locked by SHA-256 (`golden.lock`). Three labels deliberately diverge from the frozen policy and
+    are reported as a policy over-escalation finding; single-labeller self-consistency was not
+    measured.
   - An LLM second opinion and an adjudication log are kept as separate layers; see
     [`data/golden/LABELING.md`](data/golden/LABELING.md).
   - Golden is used for evaluation only.

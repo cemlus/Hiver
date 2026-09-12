@@ -84,10 +84,32 @@ applied the same rules the calibration tested, so the dev calibration's 40/40 ag
 circular and is **not** independent validation. Golden is labelled human-first for exactly this
 reason.
 
-## Labelling log (fill in when done)
+## Labelling log
 
-- Labeller:
-- Dates and time spent:
-- Codebook version: v1 (taxonomy and escalation frozen 2026-09-11)
-- Hardest distinctions / recurring ambiguous cases:
-- Known biases or doubts:
+- **Labeller:** the project owner, alone, without seeing any model-generated labels.
+- **Dates:** finished 2026-09-12. Codebook version: v1 (taxonomy and escalation frozen 2026-09-11).
+- **Fields:** only the four scored fields were kept (`conversation_state`, `intent`, `escalate`,
+  `label_confidence`). The optional cue, risk and reason columns were dropped; nothing is scored on
+  them.
+- **Checked** with `scripts/check_golden_labels.py` (read-only): 0 blocking problems. It found an
+  invalid byte in one intent cell and 6 blank cells, and the labeller fixed them before the lock.
+- **Locked:** `golden.lock` holds the SHA-256 of the sheet, and `tests/test_golden_integrity.py`
+  fails if the file changes.
+- **Self-consistency was not measured.** The planned 30-item blind re-label was dropped for time,
+  so single-labeller repeatability (κ) is unknown. The report must say so. Human–LLM agreement is
+  the only labelling-reliability number we will have.
+
+## Known human-vs-policy divergences (deliberate, not errors)
+
+Three items are labelled `escalate = no` although the frozen policy escalates every
+`purchases_billing_orders` case (rule b):
+
+| item | message | labeller's reasoning |
+|---|---|---|
+| G064 | "how do I initiate a digital refund?" | a how-to question; a policy explanation answers it safely |
+| G079 | "I would like to refund my order of Fallout 4, would that be possible?" | same: explain the refund rules first |
+| G179 | "I can't purchase any items for my avatar" | first-line help is appropriate before a handoff |
+
+Escalation is appropriate if the issue repeats or turns into a dispute. The labels stand, the
+policy stays frozen for this evaluation, and the agent will be scored wrong on these three items.
+The mismatch is reported as a **policy over-escalation finding**, never reconciled away.

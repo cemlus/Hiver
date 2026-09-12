@@ -405,6 +405,12 @@ _The original Phase 3 plan, kept for the record:_
   3. an adjudication log
   4. final labels generated from the human labels plus the log
 - **Golden is evaluation-only**, and `tests/test_golden_integrity.py` guards it.
+- **Human labels done and locked (2026-09-12).** 200 items, checked by
+  `scripts/check_golden_labels.py` (0 blocking), hash in `golden.lock`. Three labels diverge from
+  the frozen policy on purpose (G064, G079, G179 → reported as policy over-escalation).
+  Self-consistency was not measured: the 30-item re-label was dropped for time.
+- **Next:** blind LLM second opinion → human-vs-LLM agreement → adjudication log → generated final
+  labels.
 
 _Original Phase 5 text:_
 1. Sample from the post-split pool:

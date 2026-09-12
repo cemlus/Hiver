@@ -216,6 +216,26 @@ comes from. It will be trimmed to the best 10–15 for submission.
   - **Reporting:** the report states human–LLM agreement and how many labels adjudication changed.
     Headline metrics use the final labels, with the primary human labels as a sensitivity check.
     The LLM judge is validated against the human layer.
+- **[P5] Golden labels are locked (2026-09-12).** The project owner labelled all 200 items against
+  the frozen codebook without seeing any model labels. `data/golden/golden.lock` holds the SHA-256
+  of the sheet, and `tests/test_golden_integrity.py` fails if it changes. The read-only checker
+  (`scripts/check_golden_labels.py`) reports 0 blocking problems; it caught an invalid byte in one
+  intent cell and 6 blank cells, which the labeller fixed before the lock. Only the four scored
+  fields were kept.
+- **[P5] Three labels deliberately diverge from the frozen escalation policy.** G064 ("how do I
+  initiate a digital refund?"), G079 ("I would like to refund my order of Fallout 4") and G179 ("I
+  can't purchase any items for my avatar") are labelled `escalate = no`, although rule (b)
+  escalates every `purchases_billing_orders` case.
+  - The labeller's reasoning: these are how-to questions that a policy explanation answers safely,
+    and escalation fits only once the issue repeats or becomes a dispute.
+  - The labels stand, the policy stays frozen for this evaluation, and the agent is scored wrong on
+    these three items.
+  - This is reported as a **policy over-escalation finding**, not reconciled away. A candidate v2
+    change (purchases escalate only on a dispute, a failed transaction, or an account-specific
+    lookup) would be evidence from golden, so it could never be validated on golden.
+- **[P5] Self-consistency (κ) was not measured.** The planned 30-item blind re-label was dropped for
+  time. The report states that single-labeller repeatability is unknown, leaving human–LLM
+  agreement as the only labelling-reliability number.
 - **[P5] Golden is evaluation-only.** It is never used to train, as few-shot examples, for
   retrieval, or to tune prompts, thresholds or rules. Error analysis may read golden results, but
   any change it prompts is reported as post-hoc and re-checked on dev.

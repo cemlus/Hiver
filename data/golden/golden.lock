@@ -1,0 +1,3 @@
+792caedc776e201bf8844cd048b7e77c49942b0fcd95d9884c86ad8864d43645  golden_labeling_sheet.csv
+locked 2026-09-12: primary human gold labels (project owner), frozen codebook v1.
+Never edit the sheet. Corrections go through golden_adjudication.csv (see LABELING.md).
