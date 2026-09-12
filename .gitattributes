@@ -1,0 +1,4 @@
+# The locked human gold labels must be stored byte-for-byte. golden.lock holds the SHA-256 of the
+# working-tree file, and git's autocrlf would otherwise rewrite CRLF -> LF on commit, so a fresh
+# clone would produce a different file and fail tests/test_golden_integrity.py.
+data/golden/golden_labeling_sheet.csv -text
