@@ -58,7 +58,7 @@ def main() -> None:
     examples = dev_examples()
     started = datetime.now(timezone.utc)
 
-    rows, best = [], None
+    rows, best, base_outputs = [], None, None
     for union in (False, True):
         for threshold in THRESHOLDS:
             run = run_agent(examples, llm, confidence_threshold=threshold, union_cues=union,
@@ -73,6 +73,8 @@ def main() -> None:
                    "joint": m["joint_routing_correctness"].value,
                    "mean_latency_ms": sum(run.latencies_ms) / len(run.latencies_ms)}
             rows.append(row)
+            if not union and threshold == THRESHOLDS[0]:
+                base_outputs = run.outputs
             score = (row["joint"], row["esc_recall"])
             if best is None or score > (best["joint"], best["esc_recall"]):
                 best = row
@@ -92,9 +94,31 @@ def main() -> None:
         lines.append(f"| {row['cues']} | {row['threshold']:.1f} | {row['state_acc']:.2f} | "
                      f"{row['intent_f1']:.2f} | {row['esc_precision']:.2f} | {row['esc_recall']:.2f} | "
                      f"{row['joint']:.2f}{mark} | {row['mean_latency_ms']:.0f} ms |")
-    lines += ["", f"**Chosen: cues = {best['cues']}, threshold = {best['threshold']:.1f}** "
-              "(highest joint routing on dev, escalation recall breaking ties). Put the threshold in "
-              "`config.yaml` as `thresholds.intent_confidence` before the golden run.", ""]
+    # Is the threshold doing anything at all? Only if the model's confidence varies meaningfully.
+    gold = {e.request.request_id: e for e in examples}
+    scored = [(o.intent_confidence,
+               o.conversation_state == gold[o.request_id].label_conversation_state
+               and o.intent == gold[o.request_id].label_intent) for o in base_outputs]
+    values = sorted({round(c, 2) for c, _ in scored})
+    distinct = len(values)
+    lines += ["", "## Does the confidence signal support a threshold at all?", "",
+              f"The model reports {distinct} distinct confidence value(s) on dev: "
+              f"{', '.join(f'{v:.2f}' for v in values)}.", "",
+              "| confidence | items | state+intent correct |", "|---|---|---|"]
+    for value in values:
+        bucket = [ok for c, ok in scored if round(c, 2) == value]
+        lines.append(f"| {value:.2f} | {len(bucket)} | {sum(bucket) / len(bucket):.2f} |")
+    wrong_high = [c for c, ok in scored if not ok and round(c, 2) == max(values)]
+    lines += ["", f"**{len(wrong_high)} of the model's errors carry its highest confidence value.** "
+              "Self-reported confidence therefore does not separate correct from incorrect routing "
+              "on dev, so policy rule (h) — escalate when confidence is low — has nothing to key on. "
+              "Any threshold at or below the minimum observed value is inert; a threshold above it "
+              "escalates the *most* confident items, which is worse than useless.", "",
+              f"**Chosen: cues = {best['cues']}, threshold = {best['threshold']:.1f}** "
+              "(highest joint routing on dev, escalation recall breaking ties). At this value rule "
+              "(h) never fires, which is deliberate: the rule stays in the policy for a future "
+              "confidence signal that actually carries information (token logprobs or "
+              "self-consistency), to be developed on dev.", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines), encoding="utf-8")
 

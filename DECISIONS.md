@@ -361,4 +361,59 @@ comes from. It will be trimmed to the best 10–15 for submission.
   clean floor, with `keyword_rule` in its own section: its cue regexes were written after the
   assistant had read 61 golden messages during adjudication, so it may be indirectly informed by
   golden content.
+- **[P7] Production router frozen: `groq/qwen/qwen3.8-27b`** (`reasoning_effort: none`,
+  `temperature: 0`, `max_tokens: 4096`, prompt `routing_v1`, typed `RoutingProposal`, frozen
+  escalation policy). Chosen by a controlled A/B on the **40-item dev set**
+  (`results/eval/ab_routing_models.md`), where both candidates shared the identical prompt, schema,
+  taxonomy, policy and context reconstruction, and neither could emit an escalation decision.
+
+  | metric | `gpt-oss-120b` | **`qwen3.8-27b`** |
+  |---|---|---|
+  | state macro-F1 | 0.68 | **0.95** |
+  | intent macro-F1 | 0.70 | **0.75** |
+  | cue recall (micro) | 0.60 | **0.71** |
+  | joint routing | 0.70 | 0.70 |
+  | escalation P / R | 0.86 / 0.90 | 0.85 / 0.85 |
+  | malformed outputs, failures | 0, 0 | 0, 0 |
+  | mean latency | 2,756 ms | **2,486 ms** |
+  | completion tokens (40 items) | 23,441 | **5,698** |
+
+  - **Why:** better state macro-F1 (0.95 vs 0.68, driven by the rare states), better intent macro-F1,
+    materially higher cue recall (0.71 vs 0.60, and 0.44 vs 0.22 on `repeat_contact`, 1.00 vs 0.57 on
+    `prior_clarification`) — cues are what the frozen policy actually consumes. Joint routing is
+    equal, both produced zero malformed outputs and zero failures, Qwen is faster, and it uses **4×
+    fewer completion tokens**, which is decisive under Groq's 8,000 tokens/minute free-tier ceiling.
+  - **The 0.05 escalation-recall edge for gpt-oss-120b is not treated as decisive**: with ~20 gold
+    escalations in 40 dev items it amounts to one or two items, well inside noise at this sample size.
+  - **Both hypotheses from the brief were contradicted by measurement:** gpt-oss-120b was *slower* and
+    far more token-hungry despite the "higher inference speed" expectation, and structured-output
+    reliability did not separate the models at all (0 malformed on both).
+  - **Caveat, important:** the dev labels are ChatGPT drafts approved by the project owner, so this is
+    **model-selection evidence, not independent evaluation**. Nothing here was measured on golden.
+  - **Judge:** `groq/openai/gpt-oss-120b`, a different family from the router. Both are hosted by
+    Groq, so the separation is weaker than cross-vendor would have been; the report must say so.
+- **[P7] Confidence threshold calibrated on dev: rule (h) is switched off, deliberately.**
+  `scripts/calibrate_agent_threshold.py` swept thresholds 0.0–0.9 × two cue modes over the 40 dev
+  items (classification cached, so each row re-ran only the policy step). **Every threshold produced
+  identical metrics**, because the router emits just two confidence values on dev — 0.90 on 3 items
+  (all correct) and 0.95 on 37 (81% correct) — and **all 7 of its errors carry the highest value**.
+  - Self-reported confidence is therefore uninformative, even slightly inverted. A threshold at or
+    below 0.90 is inert; anything above it escalates the three items the model got *right*.
+  - `thresholds.intent_confidence: 0.0`. Rule (h) stays in the frozen policy for a confidence signal
+    that carries information (token logprobs, or self-consistency across samples), to be developed on
+    dev. The report must not present confidence-based escalation as a working safeguard.
+- **[P7] Cue mode chosen on dev: model cues ∪ deterministic extractor.** On the 40 dev items, with
+  state accuracy 0.975, intent macro-F1 0.75 and joint routing 0.70 identical either way:
+
+  | cue mode | escalation precision | escalation recall |
+  |---|---|---|
+  | model only | 0.85 | 0.85 |
+  | model ∪ extractor | 0.79 | **0.95** |
+
+  - In items: the union catches **2 more of the ~20 gold escalations at the cost of ~4 more
+    unnecessary ones**. That trade is right for a support router, where a missed escalation reaches a
+    customer as an unanswered problem while a false one costs an agent a few seconds of triage.
+  - The union is safe by construction: cues only ever raise risk in the frozen policy, so adding the
+    extractor can never drop a signal the model found.
+  - Dev labels are ChatGPT-assisted, so this is a tuning decision, not a result.
 

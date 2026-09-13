@@ -1,0 +1,25 @@
+{
+  "run": "agent_dev_calibration",
+  "model": "groq/qwen/qwen3.8-27b",
+  "prompt_version": "routing_v1",
+  "items": 40,
+  "thresholds_tried": [
+    0.0,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9
+  ],
+  "cue_modes": [
+    "model only",
+    "model+extractor"
+  ],
+  "chosen": {
+    "cues": "model+extractor",
+    "threshold": 0.0
+  },
+  "started_utc": "2026-09-13T17:31:03+00:00",
+  "finished_utc": "2026-09-13T17:35:08+00:00",
+  "dev_labels": "ChatGPT-drafted, owner-approved: a tuning signal, not a result"
+}

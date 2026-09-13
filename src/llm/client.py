@@ -66,6 +66,10 @@ class LiteLLMClient:
         self.reasoning_effort = reasoning_effort
         # Seconds per request. LiteLLM's own default is 6000 s, far too long for bulk jobs.
         self.timeout = timeout
+        # Run-metadata counters. `last_usage` is None after a cache hit, because a replay costs no
+        # tokens; `schema_retries` counts replies that failed schema validation on the first try.
+        self.last_usage: dict[str, int] | None = None
+        self.schema_retries = 0
 
     def complete(
         self, prompt: str, *, system: str | None = None, schema: type[T] | None = None
@@ -78,6 +82,7 @@ class LiteLLMClient:
         try:
             return _parse(text, schema)
         except (ValueError, ValidationError) as first_error:
+            self.schema_retries += 1
             retry_prompt = (
                 f"{prompt}\n\nYour previous reply was not valid for this schema:\n{text}\n"
                 f"Error: {_describe(first_error)}\nReply again with only the corrected JSON object."
@@ -97,13 +102,14 @@ class LiteLLMClient:
         key = cache_key(self.model, system, prompt, params)
         cached = self.cache.get(key)
         if cached is not None:
+            self.last_usage = None          # a replay costs nothing; don't report stale token counts
             return cached
         if is_offline():
             raise CacheMissError(
                 f"LLM_OFFLINE=1 and no cached reply for model={self.model} (key {key[:12]})"
             )
         text = self._call(system, prompt)  # raises instead of returning "", so "" is never cached
-        self.cache.set(key, text, meta={"model": self.model})
+        self.cache.set(key, text, meta={"model": self.model, "usage": self.last_usage})
         return text
 
     def _call(self, system: str | None, prompt: str) -> str:
@@ -122,7 +128,11 @@ class LiteLLMClient:
             kwargs["temperature"] = self.temperature
         if self.reasoning_effort is not None:
             kwargs["reasoning_effort"] = self.reasoning_effort
-        choice = litellm.completion(**kwargs).choices[0]
+        response = litellm.completion(**kwargs)
+        usage = getattr(response, "usage", None)
+        self.last_usage = ({k: int(v) for k, v in dict(usage).items() if isinstance(v, (int, float))}
+                           if usage else None)
+        choice = response.choices[0]
         text = choice.message.content or ""
         if not text.strip():
             raise LLMEmptyReplyError(

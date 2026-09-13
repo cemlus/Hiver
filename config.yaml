@@ -13,18 +13,34 @@ models:
   # reasoning_effort: null = provider default. disable | low | medium | high set Gemini's
   # thinking budget, which is spent out of max_tokens. Only part of the cache key when set.
   # timeout: seconds per request (LiteLLM's own default is 6000).
-  agent:
-    name: gemini/gemini-2.5-flash
+  agent:                  # production router, frozen 2026-09-13 after the dev A/B (DECISIONS [P7])
+    name: groq/qwen/qwen3.8-27b
     temperature: 0
-    max_tokens: 1024
-    reasoning_effort: null
-    timeout: 60
-  judge:                  # keep different from the agent model (self-preference bias)
-    name: gemini/gemini-3.5-flash   # free tier; switch to gemini/gemini-2.5-pro once billing is enabled
-    temperature: null
     max_tokens: 4096
-    reasoning_effort: null
+    reasoning_effort: none  # structured classification needs no reasoning budget
     timeout: 120
+  # Phase 7 A/B: two Groq candidates evaluated on the DEV set before the production model is
+  # frozen. Both use the same prompt, schema, taxonomy and escalation policy; only the model differs.
+  candidates:
+    gpt_oss_120b:
+      name: groq/openai/gpt-oss-120b
+      temperature: 0
+      max_tokens: 4096      # it spends reasoning tokens out of this budget
+      reasoning_effort: null
+      timeout: 120
+    qwen3_8_27b:
+      name: groq/qwen/qwen3.8-27b
+      temperature: 0
+      max_tokens: 4096
+      reasoning_effort: none   # structured classification: no reasoning budget needed
+      timeout: 120
+
+  judge:                  # keep different from the agent model (self-preference bias)
+    name: groq/openai/gpt-oss-120b  # different family from the router; same vendor, so separation is
+    temperature: 0                  # weaker than cross-vendor would be (recorded in DECISIONS)
+    max_tokens: 8192                # it spends reasoning tokens out of this budget
+    reasoning_effort: null
+    timeout: 180
 
 embedding_model: sentence-transformers/all-MiniLM-L6-v2
 
@@ -36,8 +52,11 @@ data:
 retrieval:
   k: 5
 
-thresholds:               # placeholders; tuned on dev only (Phase 7)
-  intent_confidence: 0.6
+thresholds:               # chosen on dev only (Phase 7); never tuned on golden
+  # 0.0 disables policy rule (h). The router reports only 0.90/0.95 on dev and all 7 of its errors
+  # carry 0.95, so its self-reported confidence cannot separate right from wrong: any usable
+  # threshold would escalate the most confident items. See results/eval/agent_dev_calibration.md.
+  intent_confidence: 0.0
   retrieval_similarity: 0.5
 
 cache:

@@ -1,0 +1,69 @@
+{
+  "run": "ab_routing_models",
+  "items": 40,
+  "prompt_version": "routing_v1",
+  "structured_output": "JSON Schema in the prompt + pydantic validation (P0 decision), not provider-native json_schema",
+  "started_utc": "2026-09-13T15:51:00+00:00",
+  "finished_utc": "2026-09-13T16:37:11+00:00",
+  "sleep_seconds": 32.0,
+  "candidates": [
+    {
+      "name": "gpt_oss_120b",
+      "model": "groq/openai/gpt-oss-120b",
+      "params": {
+        "name": "groq/openai/gpt-oss-120b",
+        "temperature": 0,
+        "max_tokens": 4096,
+        "reasoning_effort": null,
+        "timeout": 120
+      },
+      "cue_micro": {
+        "precision": 0.8529411764705882,
+        "recall": 0.6041666666666666
+      },
+      "latency_ms": {
+        "mean": 2756.428110599518,
+        "max": 5803.128480911255
+      },
+      "tokens": {
+        "prompt": 146434,
+        "completion": 23441,
+        "total": 169875,
+        "live_calls": 38,
+        "cached_calls": 2
+      },
+      "schema_retries": 0,
+      "scored_items": 40,
+      "failures": []
+    },
+    {
+      "name": "qwen3_8_27b",
+      "model": "groq/qwen/qwen3.8-27b",
+      "params": {
+        "name": "groq/qwen/qwen3.8-27b",
+        "temperature": 0,
+        "max_tokens": 4096,
+        "reasoning_effort": "none",
+        "timeout": 120
+      },
+      "cue_micro": {
+        "precision": 0.8095238095238095,
+        "recall": 0.7083333333333334
+      },
+      "latency_ms": {
+        "mean": 2485.75576543808,
+        "max": 12325.084209442139
+      },
+      "tokens": {
+        "prompt": 152196,
+        "completion": 5698,
+        "total": 157894,
+        "live_calls": 39,
+        "cached_calls": 1
+      },
+      "schema_retries": 0,
+      "scored_items": 40,
+      "failures": []
+    }
+  ]
+}
