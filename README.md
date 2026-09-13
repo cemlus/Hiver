@@ -112,7 +112,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 | `src/integrations/` | Optional Postgres / Redis / Slack adapters (never used by eval) |
 | `src/dataprep/` | Ingestion, cleaning, splits, weak labels, taxonomy exploration |
 | `src/eval/` | Baselines, metrics, LLM judge, judge–human agreement |
-| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison) and `validate_brand.py` (usable-data check), which need `data/raw/twcs.csv`; `taxonomy_explore.py` (discovery sample, topics, codebook render); `sample_dev.py` (the 40-item dev set); `calibrate_escalation.py` (draft vs proposed escalation policy on dev labels); `sample_golden.py` (the 200-item golden set and its blind labelling sheet) |
+| `scripts/` | Rerunnable analysis: `eda.py` (brand comparison) and `validate_brand.py` (usable-data check), which need `data/raw/twcs.csv`; `taxonomy_explore.py` (discovery sample, topics, codebook render); `sample_dev.py` (the 40-item dev set); `calibrate_escalation.py` (draft vs proposed escalation policy on dev labels); `sample_golden.py` (the 200-item golden set and its blind labelling sheet); `check_golden_labels.py` (read-only check of the human gold labels); `llm_second_opinion.py` (blind LLM labels for the same items); `compare_golden_labels.py` (human vs LLM agreement, adjudication log, final labels) |
 | `data/taxonomy/` | Taxonomy spec (`taxonomy_v1.yaml`) and the discovery coding sample (not gold) |
 | `data/` | Processed subsample, golden/dev sets, codebook, LLM cache |
 | `prompts/` | Prompt templates |
