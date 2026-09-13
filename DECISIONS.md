@@ -239,3 +239,34 @@ comes from. It will be trimmed to the best 10–15 for submission.
 - **[P5] Golden is evaluation-only.** It is never used to train, as few-shot examples, for
   retrieval, or to tune prompts, thresholds or rules. Error analysis may read golden results, but
   any change it prompts is reported as post-hoc and re-checked on dev.
+- **[P5] Adjudication of the 86 human-vs-Gemma disagreements (2026-09-13).** 61 items, resolved by
+  `scripts/adjudicate_golden.py` against codebook v1: **47 in favour of the human label, 39 in
+  favour of Gemma, 0 new third labels.** Net effect on gold: 39 field changes across 29 of 200
+  items. Escalation rates: human 75, Gemma 90, final 74.
+  - **The adjudicator was the assistant, not a second independent human annotator.** The project
+    owner reviewed the decisions and accepted them, but `golden_final.csv` is therefore human
+    labels plus an assistant codebook reading, not purely human gold. Headline metrics are reported
+    on the final labels **and** repeated against the primary human labels as a sensitivity check.
+  - Three label layers stay separate and are never merged: `golden_labeling_sheet.csv` (locked
+    human), `golden_llm_labels.csv` (Gemma), `golden_final.csv` (generated from human + the
+    adjudication log). Every row of `golden_adjudication.csv` keeps the human value, the Gemma
+    value, the final, who decided, and why.
+  - G064, G079 and G179 keep the human `escalate = no` as recorded policy divergences.
+- **[P5] What adjudication exposed, for a future v2 developed on dev only.** These are findings, not
+  changes: the golden set is never used to retrofit the taxonomy or the policy.
+  - `support_process_complaint` has a high default risk, so T0 keeps selecting it for multi-issue
+    messages, contradicting its own exclude rule. Gemma chose it 8 times and lost all 8. A v2 should
+    say it is never a T0 candidate when a concrete issue is named.
+  - `issue_followup` needs one explicit sentence: continuing the customer's *own* earlier tweet in a
+    thread counts, even when the brand has not replied in between. 9 of 18 state disagreements were
+    exactly this, and 8 resolved against the human label.
+  - Anger on low-risk intents now has evidence dev could not provide: G018 and G029 contain profanity
+    and a competitor threat but stay auto-handled because connectivity and product_info are low risk.
+  - Enforcement plus an account-specific status request (G140, G143) stays auto by policy, the
+    clearest case where a person could add value and the rules forbid it.
+- **[P5] A flaw in the labelling sheet, to fix before any future labelling round.**
+  `golden_labeling_sheet.md` printed "first contact" / "follow-up" from the dataset's `is_followup`
+  flag, which means "answers a brand reply" — a different rule from the codebook's `issue_followup`.
+  The sheet therefore gave the labeller a cue that contradicted the codebook, which explains most of
+  the state disagreements.
+

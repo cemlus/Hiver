@@ -113,3 +113,27 @@ Three items are labelled `escalate = no` although the frozen policy escalates ev
 Escalation is appropriate if the issue repeats or turns into a dispute. The labels stand, the
 policy stays frozen for this evaluation, and the agent will be scored wrong on these three items.
 The mismatch is reported as a **policy over-escalation finding**, never reconciled away.
+
+## Adjudication outcome (2026-09-13)
+
+86 disagreements across 61 items, all resolved and logged in `golden_adjudication.csv`:
+
+| outcome | count |
+|---|---|
+| human label upheld | 47 |
+| Gemma label adopted | 39 |
+| new third label | 0 |
+
+`golden_final.csv` differs from the human labels on 39 fields across 29 of 200 items.
+
+**Who adjudicated.** The assistant, by reading each message and its context against codebook v1
+(`decided_by = "assistant (codebook v1)"`), except the three refund divergences, which are the
+project owner's. The project owner reviewed and accepted the decisions. This is **not** a second
+independent human annotator, so the final labels are human labels plus an assistant codebook
+reading. Report headline metrics on the final labels and repeat them on the primary human labels.
+
+**Second-opinion provenance.** `gemini/gemma-4-26b-a4b-it` via the Gemini API, temperature 0, in a
+staged generation budget (171 items at 2048 max_tokens, 23 at 4096, 5 at 8192, 1 at 16384); see
+`second_opinion_run.json`. A different model family from the gemini-2.5-flash production agent, but
+the same vendor, so it is partially independent, not vendor-independent validation.
+

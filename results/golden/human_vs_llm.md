@@ -36,7 +36,7 @@ Cohen's κ corrects for agreement by chance. `label_confidence` is metadata, not
 
 ## Disagreements to adjudicate
 
-86 across 61 items (0 already resolved).
+86 across 61 items (84 already resolved).
 
 | item | field | human | LLM | message | LLM's reason |
 |---|---|---|---|---|---|

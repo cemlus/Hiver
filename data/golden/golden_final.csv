@@ -1,0 +1,201 @@
+golden_id,record_id,conversation_state,intent,escalate,label_confidence,adjudicated
+G001,118373,issue_followup,account_access_profile,yes,high,
+G002,99058,new_issue,needs_more_context,no,low,
+G003,169146,new_issue,enforcement_safety,no,high,
+G004,2737529,new_issue,account_access_profile,yes,high,intent
+G005,2858533,issue_followup,hardware_devices,no,high,
+G006,545523,new_issue,hardware_devices,no,high,
+G007,570265,issue_followup,purchases_billing_orders,yes,high,
+G008,565143,issue_followup,purchases_billing_orders,yes,high,
+G009,450506,new_issue,enforcement_safety,no,high,escalate
+G010,2713685,new_issue,product_info_feedback,no,high,
+G011,1125226,issue_followup,connectivity_xbox_live,yes,high,
+G012,505523,new_issue,hardware_devices,no,high,
+G013,2897779,issue_followup,account_access_profile,yes,high,
+G014,153152,new_issue,product_info_feedback,no,high,
+G015,2630775,social_offtopic,,no,high,
+G016,863781,issue_followup,entitlements_subscriptions_codes,yes,high,
+G017,183202,new_issue,hardware_devices,no,medium,intent escalate
+G018,2972564,new_issue,connectivity_xbox_live,no,medium,intent escalate
+G019,521452,new_issue,hardware_devices,no,high,
+G020,2585935,new_issue,needs_more_context,no,low,
+G021,2518613,new_issue,entitlements_subscriptions_codes,no,high,intent escalate
+G022,621204,issue_followup,install_download_update,yes,high,
+G023,513855,social_offtopic,,no,high,conversation_state intent escalate
+G024,2754929,new_issue,entitlements_subscriptions_codes,yes,high,
+G025,123850,issue_followup,hardware_devices,no,high,escalate
+G026,2957235,new_issue,product_info_feedback,no,high,intent escalate
+G027,2842209,issue_followup,product_info_feedback,no,high,
+G028,54429,issue_followup,support_process_complaint,yes,high,conversation_state
+G029,565199,new_issue,product_info_feedback,no,medium,intent escalate
+G030,1719961,new_issue,account_access_profile,no,high,intent escalate
+G031,2654476,issue_followup,purchases_billing_orders,yes,high,intent
+G032,2747533,new_issue,product_info_feedback,no,medium,
+G033,95023,issue_followup,install_download_update,yes,high,intent
+G034,2919017,new_issue,hardware_devices,no,high,
+G035,2912012,acknowledgement_closing,,no,high,
+G036,1292227,acknowledgement_closing,,no,high,
+G037,522285,new_issue,hardware_devices,no,high,conversation_state escalate
+G038,2818611,new_issue,purchases_billing_orders,yes,high,
+G039,519474,new_issue,needs_more_context,no,low,
+G040,2860248,issue_followup,software_game_app,no,high,
+G041,2698207,new_issue,software_game_app,no,high,
+G042,2732139,issue_followup,hardware_devices,yes,high,
+G043,2594918,new_issue,product_info_feedback,no,high,
+G044,463190,issue_followup,purchases_billing_orders,yes,high,
+G045,668438,issue_followup,entitlements_subscriptions_codes,yes,high,conversation_state escalate
+G046,702357,new_issue,purchases_billing_orders,yes,high,
+G047,567806,new_issue,account_access_profile,yes,high,
+G048,2508707,new_issue,entitlements_subscriptions_codes,yes,high,
+G049,565188,new_issue,hardware_devices,yes,high,
+G050,975522,new_issue,purchases_billing_orders,yes,high,
+G051,2654345,new_issue,account_access_profile,yes,high,
+G052,2710677,new_issue,product_info_feedback,no,high,intent escalate
+G053,23436,new_issue,account_access_profile,yes,high,
+G054,2896387,new_issue,connectivity_xbox_live,no,medium,
+G055,2926569,issue_followup,enforcement_safety,no,high,
+G056,2899257,new_issue,product_info_feedback,no,high,
+G057,2920247,new_issue,entitlements_subscriptions_codes,yes,high,
+G058,2511133,new_issue,enforcement_safety,yes,high,
+G059,2868605,new_issue,product_info_feedback,no,high,
+G060,2875118,new_issue,account_access_profile,yes,high,
+G061,667611,issue_followup,enforcement_safety,no,high,
+G062,2961531,new_issue,product_info_feedback,no,high,
+G063,105851,issue_followup,connectivity_xbox_live,no,high,
+G064,2579790,new_issue,purchases_billing_orders,no,high,escalate
+G065,1252649,new_issue,entitlements_subscriptions_codes,yes,high,intent escalate
+G066,2740175,new_issue,product_info_feedback,no,high,escalate
+G067,863742,social_offtopic,,no,high,conversation_state
+G068,2617433,issue_followup,hardware_devices,yes,high,
+G069,2654303,new_issue,software_game_app,no,high,
+G070,2708784,issue_followup,purchases_billing_orders,yes,high,
+G071,546900,new_issue,product_info_feedback,no,high,
+G072,120892,issue_followup,enforcement_safety,no,high,
+G073,564261,issue_followup,enforcement_safety,no,high,
+G074,175092,issue_followup,purchases_billing_orders,yes,high,
+G075,702394,new_issue,entitlements_subscriptions_codes,no,high,escalate
+G076,447532,social_offtopic,,no,high,
+G077,488311,new_issue,enforcement_safety,no,high,
+G078,564246,issue_followup,hardware_devices,yes,high,
+G079,2871789,new_issue,purchases_billing_orders,no,high,escalate
+G080,340459,new_issue,hardware_devices,yes,high,
+G081,2528982,new_issue,software_game_app,no,high,
+G082,2819967,new_issue,entitlements_subscriptions_codes,no,high,escalate
+G083,2516434,new_issue,purchases_billing_orders,yes,high,
+G084,2715726,issue_followup,enforcement_safety,no,high,intent
+G085,2916170,new_issue,install_download_update,no,high,
+G086,2923708,new_issue,needs_more_context,no,low,
+G087,2854021,new_issue,account_access_profile,yes,high,escalate
+G088,1352084,new_issue,product_info_feedback,no,medium,
+G089,509881,new_issue,install_download_update,yes,high,
+G090,241059,issue_followup,software_game_app,no,high,escalate
+G091,121807,new_issue,product_info_feedback,no,high,
+G092,1327687,acknowledgement_closing,,no,high,
+G093,2705236,issue_followup,purchases_billing_orders,yes,high,
+G094,2420232,new_issue,connectivity_xbox_live,no,high,
+G095,1757577,issue_followup,software_game_app,no,high,conversation_state intent
+G096,2975923,new_issue,connectivity_xbox_live,no,high,
+G097,514978,new_issue,enforcement_safety,no,high,
+G098,2586836,issue_followup,purchases_billing_orders,yes,high,
+G099,2782545,new_issue,purchases_billing_orders,yes,high,
+G100,515000,new_issue,connectivity_xbox_live,no,high,
+G101,2896393,social_offtopic,,no,medium,
+G102,545519,new_issue,enforcement_safety,no,high,
+G103,170620,new_issue,purchases_billing_orders,yes,high,
+G104,858904,new_issue,software_game_app,no,high,
+G105,522278,new_issue,account_access_profile,yes,high,intent
+G106,565151,new_issue,account_access_profile,yes,high,intent
+G107,101461,new_issue,support_process_complaint,yes,high,
+G108,2874276,new_issue,needs_more_context,no,low,
+G109,545544,new_issue,connectivity_xbox_live,no,medium,
+G110,2581231,new_issue,account_access_profile,no,medium,intent escalate
+G111,661186,new_issue,hardware_devices,no,high,
+G112,570275,acknowledgement_closing,,no,high,
+G113,2849578,new_issue,entitlements_subscriptions_codes,yes,high,intent
+G114,2693439,new_issue,entitlements_subscriptions_codes,yes,high,
+G115,2682305,new_issue,connectivity_xbox_live,no,high,
+G116,2903902,issue_followup,software_game_app,no,high,intent
+G117,593795,issue_followup,hardware_devices,yes,high,conversation_state escalate
+G118,493803,new_issue,account_access_profile,yes,high,
+G119,183230,new_issue,purchases_billing_orders,yes,medium,intent
+G120,2707875,new_issue,enforcement_safety,no,high,
+G121,2636050,new_issue,connectivity_xbox_live,yes,high,escalate
+G122,2591633,issue_followup,entitlements_subscriptions_codes,yes,high,escalate
+G123,573030,new_issue,product_info_feedback,no,high,
+G124,2855552,acknowledgement_closing,,no,high,
+G125,2585946,issue_followup,enforcement_safety,no,high,conversation_state
+G126,523165,issue_followup,hardware_devices,no,high,
+G127,1613671,issue_followup,enforcement_safety,yes,high,escalate
+G128,2796698,new_issue,entitlements_subscriptions_codes,yes,high,
+G129,2795214,new_issue,product_info_feedback,no,high,
+G130,241134,new_issue,software_game_app,no,high,intent
+G131,601589,new_issue,product_info_feedback,no,high,intent escalate
+G132,2856902,issue_followup,enforcement_safety,no,high,conversation_state
+G133,449726,new_issue,entitlements_subscriptions_codes,yes,high,
+G134,40580,new_issue,hardware_devices,no,high,intent
+G135,560712,issue_followup,connectivity_xbox_live,yes,high,
+G136,467213,social_offtopic,,no,high,
+G137,542766,new_issue,software_game_app,no,high,intent
+G138,2911998,new_issue,hardware_devices,no,high,
+G139,2455726,new_issue,product_info_feedback,no,high,
+G140,488317,new_issue,enforcement_safety,no,high,escalate
+G141,519493,new_issue,support_process_complaint,yes,high,
+G142,564242,new_issue,product_info_feedback,no,high,
+G143,2772850,issue_followup,enforcement_safety,no,high,escalate
+G144,558079,new_issue,entitlements_subscriptions_codes,yes,high,
+G145,2757877,new_issue,purchases_billing_orders,yes,high,intent
+G146,2511128,new_issue,connectivity_xbox_live,no,high,intent escalate
+G147,2910537,issue_followup,software_game_app,yes,low,conversation_state intent escalate
+G148,655963,new_issue,account_access_profile,yes,high,
+G149,2654523,new_issue,hardware_devices,no,high,
+G150,634657,social_offtopic,,no,high,
+G151,1757562,issue_followup,product_info_feedback,no,high,conversation_state intent escalate
+G152,263026,acknowledgement_closing,,no,high,conversation_state intent
+G153,1693245,new_issue,hardware_devices,no,high,
+G154,2654489,social_offtopic,,no,high,
+G155,109422,issue_followup,hardware_devices,yes,high,
+G156,705454,new_issue,support_process_complaint,yes,high,
+G157,621222,issue_followup,connectivity_xbox_live,no,high,
+G158,700164,new_issue,needs_more_context,no,low,
+G159,176183,new_issue,connectivity_xbox_live,yes,high,
+G160,169200,issue_followup,product_info_feedback,no,high,
+G161,454248,new_issue,software_game_app,yes,high,intent escalate
+G162,2654501,new_issue,account_access_profile,no,high,escalate
+G163,2420242,new_issue,product_info_feedback,no,high,
+G164,466465,new_issue,software_game_app,no,high,
+G165,516196,new_issue,entitlements_subscriptions_codes,yes,high,
+G166,460972,acknowledgement_closing,,no,high,
+G167,592486,new_issue,account_access_profile,no,high,intent
+G168,493809,new_issue,product_info_feedback,no,high,
+G169,118386,new_issue,needs_more_context,no,low,conversation_state intent
+G170,456364,new_issue,hardware_devices,no,high,
+G171,519464,new_issue,connectivity_xbox_live,no,high,
+G172,918426,new_issue,hardware_devices,no,low,
+G173,118452,new_issue,purchases_billing_orders,yes,high,
+G174,2867423,new_issue,product_info_feedback,no,high,
+G175,177198,new_issue,purchases_billing_orders,yes,high,
+G176,2706407,acknowledgement_closing,,no,high,
+G177,461017,issue_followup,software_game_app,no,high,
+G178,2695210,new_issue,hardware_devices,no,high,
+G179,2785454,new_issue,purchases_billing_orders,no,high,escalate
+G180,170572,issue_followup,hardware_devices,no,high,escalate
+G181,2866233,issue_followup,product_info_feedback,no,high,conversation_state
+G182,509897,new_issue,entitlements_subscriptions_codes,yes,high,
+G183,558076,new_issue,purchases_billing_orders,yes,high,
+G184,570250,new_issue,support_process_complaint,yes,high,
+G185,2966722,issue_followup,hardware_devices,no,high,conversation_state intent
+G186,2380148,new_issue,entitlements_subscriptions_codes,yes,high,
+G187,2916138,new_issue,account_access_profile,yes,high,
+G188,2629352,issue_followup,connectivity_xbox_live,yes,high,
+G189,2955643,new_issue,purchases_billing_orders,yes,high,
+G190,2667877,new_issue,product_info_feedback,no,high,
+G191,2799590,new_issue,connectivity_xbox_live,no,high,
+G192,552410,issue_followup,product_info_feedback,no,medium,conversation_state
+G193,863740,new_issue,software_game_app,no,high,
+G194,1327675,social_offtopic,,no,medium,
+G195,863734,new_issue,hardware_devices,yes,high,
+G196,2926577,new_issue,hardware_devices,no,high,
+G197,2856893,issue_followup,hardware_devices,yes,high,conversation_state
+G198,62014,issue_followup,hardware_devices,no,high,conversation_state
+G199,121828,new_issue,product_info_feedback,no,high,
+G200,2916143,new_issue,hardware_devices,no,high,

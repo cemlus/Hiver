@@ -1,87 +1,87 @@
 golden_id,field,human,llm,final,decided_by,rationale
-G004,intent,account_access_profile,support_process_complaint,,,
-G009,escalate,no,yes,,,
-G017,intent,hardware_devices,support_process_complaint,,,
-G017,escalate,no,yes,,,
-G018,intent,connectivity_xbox_live,support_process_complaint,,,
-G018,escalate,no,yes,,,
-G021,intent,software_game_app,entitlements_subscriptions_codes,,,
-G021,escalate,no,yes,,,
-G023,conversation_state,new_issue,social_offtopic,,,
-G023,intent,account_access_profile,,,,
-G023,escalate,yes,no,,,
-G025,escalate,yes,no,,,
-G026,intent,product_info_feedback,support_process_complaint,,,
-G026,escalate,no,yes,,,
-G028,conversation_state,issue_followup,new_issue,,,
-G029,intent,product_info_feedback,hardware_devices,,,
-G029,escalate,no,yes,,,
-G030,intent,product_info_feedback,account_access_profile,,,
-G030,escalate,no,yes,,,
-G031,intent,entitlements_subscriptions_codes,purchases_billing_orders,,,
-G033,intent,connectivity_xbox_live,install_download_update,,,
-G037,conversation_state,new_issue,issue_followup,,,
-G037,escalate,no,yes,,,
-G045,conversation_state,new_issue,issue_followup,,,
-G045,escalate,yes,no,,,
-G052,intent,product_info_feedback,purchases_billing_orders,,,
-G052,escalate,no,yes,,,
-G064,escalate,no,yes,,,
-G065,intent,product_info_feedback,entitlements_subscriptions_codes,,,
-G065,escalate,no,yes,,,
-G066,escalate,yes,no,,,
-G067,conversation_state,acknowledgement_closing,social_offtopic,,,
-G075,escalate,no,yes,,,
-G079,escalate,no,yes,,,
-G082,escalate,no,yes,,,
-G084,intent,software_game_app,enforcement_safety,,,
-G087,escalate,no,yes,,,
-G090,escalate,yes,no,,,
-G095,conversation_state,acknowledgement_closing,issue_followup,,,
-G095,intent,,software_game_app,,,
-G105,intent,account_access_profile,entitlements_subscriptions_codes,,,
-G106,intent,account_access_profile,support_process_complaint,,,
-G110,intent,software_game_app,account_access_profile,,,
-G110,escalate,no,yes,,,
-G113,intent,entitlements_subscriptions_codes,support_process_complaint,,,
-G116,intent,software_game_app,product_info_feedback,,,
-G117,conversation_state,new_issue,issue_followup,,,
-G117,escalate,no,yes,,,
-G119,intent,purchases_billing_orders,hardware_devices,,,
-G121,escalate,no,yes,,,
-G122,escalate,yes,no,,,
-G125,conversation_state,new_issue,issue_followup,,,
-G127,escalate,yes,no,,,
-G130,intent,software_game_app,product_info_feedback,,,
-G131,intent,entitlements_subscriptions_codes,product_info_feedback,,,
-G131,escalate,yes,no,,,
-G132,conversation_state,new_issue,issue_followup,,,
-G134,intent,hardware_devices,product_info_feedback,,,
-G137,intent,software_game_app,connectivity_xbox_live,,,
-G140,escalate,no,yes,,,
-G143,escalate,no,yes,,,
-G145,intent,purchases_billing_orders,support_process_complaint,,,
-G146,intent,connectivity_xbox_live,support_process_complaint,,,
-G146,escalate,no,yes,,,
-G147,conversation_state,new_issue,issue_followup,,,
-G147,intent,needs_more_context,software_game_app,,,
-G147,escalate,no,yes,,,
-G151,conversation_state,issue_followup,new_issue,,,
-G151,intent,entitlements_subscriptions_codes,product_info_feedback,,,
-G151,escalate,yes,no,,,
-G152,conversation_state,acknowledgement_closing,issue_followup,,,
-G152,intent,,account_access_profile,,,
-G161,intent,software_game_app,connectivity_xbox_live,,,
-G161,escalate,no,yes,,,
-G162,escalate,no,yes,,,
-G167,intent,account_access_profile,product_info_feedback,,,
-G169,conversation_state,issue_followup,new_issue,,,
-G169,intent,needs_more_context,hardware_devices,,,
-G179,escalate,no,yes,,,
-G180,escalate,yes,no,,,
-G181,conversation_state,issue_followup,new_issue,,,
-G185,conversation_state,social_offtopic,issue_followup,,,
-G185,intent,,hardware_devices,,,
-G192,conversation_state,new_issue,issue_followup,,,
-G197,conversation_state,new_issue,issue_followup,,,
-G198,conversation_state,new_issue,issue_followup,,,
+G004,intent,account_access_profile,support_process_complaint,account_access_profile,assistant (codebook v1),support_process_complaint excludes complaints that name a concrete issue; the hacked account is the issue and the missed callbacks are a repeat-contact cue
+G009,escalate,no,yes,no,assistant (codebook v1),"enforcement is auto with the policy template; no safety or legal cue, and Gemma's own reason cites GENERAL_INFO, an auto code"
+G017,intent,hardware_devices,support_process_complaint,hardware_devices,assistant (codebook v1),names a concrete headset/controller fault; the jab at responsiveness is not a complaint about a prior contact
+G017,escalate,no,yes,no,assistant (codebook v1),hardware auto: no repair request and no failed steps
+G018,intent,connectivity_xbox_live,support_process_complaint,connectivity_xbox_live,assistant (codebook v1),"the concrete issue is a connection error code; the support complaint is a risk cue, not the intent"
+G018,escalate,no,yes,no,assistant (codebook v1),"repeat contact alone does not escalate, and strong_anger fires only on medium/high-risk intents while connectivity is low"
+G021,intent,software_game_app,entitlements_subscriptions_codes,entitlements_subscriptions_codes,assistant (codebook v1),"the console cannot confirm ownership of the title, which is a licence check rather than an app bug (close call)"
+G021,escalate,no,yes,no,assistant (codebook v1),no specific lookup requested and no failed steps; first-line entitlement steps still apply
+G023,conversation_state,new_issue,social_offtopic,social_offtopic,assistant (codebook v1),Portuguese banter aimed at another customer; no support request of their own
+G023,intent,account_access_profile,,,assistant (codebook v1),states without an intent leave it blank
+G023,escalate,yes,no,no,assistant (codebook v1),no support request and no risk cue
+G025,escalate,yes,no,no,assistant (codebook v1),adds a symptom mid-troubleshooting; no repair request and no stated failure
+G026,intent,product_info_feedback,support_process_complaint,product_info_feedback,assistant (codebook v1),the request is an information question about an update; the support jab does not make it a process complaint
+G026,escalate,no,yes,no,assistant (codebook v1),product_info is auto (GENERAL_INFO)
+G028,conversation_state,issue_followup,new_issue,issue_followup,assistant (codebook v1),continues the mic case already raised in this thread
+G029,intent,product_info_feedback,hardware_devices,product_info_feedback,assistant (codebook v1),a negative opinion on the product with no help requested (S2)
+G029,escalate,no,yes,no,assistant (codebook v1),"profanity and a competitor threat fire strong_anger, but product_info is low risk so the rule does not escalate"
+G030,intent,product_info_feedback,account_access_profile,account_access_profile,assistant (codebook v1),voice/text privacy settings are profile data (T7)
+G030,escalate,no,yes,no,assistant (codebook v1),answerable as a how-to with the settings guide; no account-specific action requested
+G031,intent,entitlements_subscriptions_codes,purchases_billing_orders,purchases_billing_orders,assistant (codebook v1),"the refund transaction itself is the problem, which T5 assigns to purchases"
+G033,intent,connectivity_xbox_live,install_download_update,install_download_update,assistant (codebook v1),slow downloads belong to install_download_update; connectivity covers reaching Live
+G037,conversation_state,new_issue,issue_followup,new_issue,assistant (codebook v1),console freezing was not raised earlier in this thread
+G037,escalate,no,yes,no,assistant (codebook v1),hardware auto: no repair request and no stated failure
+G045,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),continues the Gold issue this customer raised earlier in the thread
+G045,escalate,yes,no,yes,assistant (codebook v1),Gold removed from their own account needs an account-specific lookup
+G052,intent,product_info_feedback,purchases_billing_orders,product_info_feedback,assistant (codebook v1),"a pricing question with no failed transaction, which the purchases exclude sends to product_info"
+G052,escalate,no,yes,no,assistant (codebook v1),product_info is auto
+G064,escalate,no,yes,no,project owner (recorded policy divergence),"human-vs-policy divergence kept: a refund how-to is answerable, with escalation if it repeats or becomes a dispute"
+G065,intent,product_info_feedback,entitlements_subscriptions_codes,entitlements_subscriptions_codes,assistant (codebook v1),"owned 360 titles will not download, which is a licence/entitlement problem (close call with install)"
+G065,escalate,no,yes,yes,assistant (codebook v1),"the customer states their own attempts failed, so steps_failed fires"
+G066,escalate,yes,no,no,assistant (codebook v1),a regional availability question; product_info is auto
+G067,conversation_state,acknowledgement_closing,social_offtopic,social_offtopic,assistant (codebook v1),"advice to another customer, with no support request and no issue of their own to close"
+G075,escalate,no,yes,no,assistant (codebook v1),first-line entitlement steps have not been tried; hand off only if the reward is still missing
+G079,escalate,no,yes,no,project owner (recorded policy divergence),human-vs-policy divergence kept: explain the refund rules first
+G082,escalate,no,yes,no,assistant (codebook v1),the redemption guide is the first-line step and no lookup has been requested yet
+G084,intent,software_game_app,enforcement_safety,enforcement_safety,assistant (codebook v1),"the thread's issue is players cheating on leaderboards, which enforcement_safety covers"
+G087,escalate,no,yes,yes,assistant (codebook v1),changing their own account's adult status needs account-specific action
+G090,escalate,yes,no,no,assistant (codebook v1),answers the brand's clarifying questions; no failed steps stated
+G095,conversation_state,acknowledgement_closing,issue_followup,issue_followup,assistant (codebook v1),"the issue is only partly fixed and details are still being supplied, so S1 does not allow closing"
+G095,intent,,software_game_app,software_game_app,assistant (codebook v1),the thread's issue is the gamertag search feature
+G105,intent,account_access_profile,entitlements_subscriptions_codes,account_access_profile,assistant (codebook v1),repeated sign-outs from their own account; no entitlement is missing
+G106,intent,account_access_profile,support_process_complaint,account_access_profile,assistant (codebook v1),the hacked account is the concrete issue and the daily contacts are a repeat-contact cue
+G110,intent,software_game_app,account_access_profile,account_access_profile,assistant (codebook v1),"a gamerpic is profile data (T7), not an app bug"
+G110,escalate,no,yes,no,assistant (codebook v1),answerable with the custom-gamerpic requirements; no account action requested
+G113,intent,entitlements_subscriptions_codes,support_process_complaint,entitlements_subscriptions_codes,assistant (codebook v1),"prepaid balance not recognised is an entitlement problem; 'no one can help' is a cue, not the intent"
+G116,intent,software_game_app,product_info_feedback,software_game_app,assistant (codebook v1),the Guide not showing the playing track is a dashboard/app problem
+G117,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),continues the menu problem this customer raised earlier in the thread
+G117,escalate,no,yes,yes,assistant (codebook v1),"'is it fixable?' asks about repair, which escalates hardware"
+G119,intent,purchases_billing_orders,hardware_devices,purchases_billing_orders,assistant (codebook v1),"a snapped game disc with a rebuy dispute is purchases (T11), not a faulty device"
+G121,escalate,no,yes,yes,assistant (codebook v1),the customer states the standard troubleshooting already failed: steps_failed
+G122,escalate,yes,no,yes,assistant (codebook v1),game sharing across their accounts needs a licence/home-Xbox lookup
+G125,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),continues the ban question this customer raised earlier in the thread
+G127,escalate,yes,no,yes,assistant (codebook v1),a hate-speech report plus the threat to take it further triggers SAFETY_LEGAL
+G130,intent,software_game_app,product_info_feedback,software_game_app,assistant (codebook v1),"reports a green screen failure, so T10 sends it to the issue intent rather than the roadmap question"
+G131,intent,entitlements_subscriptions_codes,product_info_feedback,product_info_feedback,assistant (codebook v1),"the message is a negative opinion on the dashboard UI, not the earlier code problem"
+G131,escalate,yes,no,no,assistant (codebook v1),product_info is auto and no risk cue fires
+G132,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),continues the ban this customer described earlier in the thread
+G134,intent,hardware_devices,product_info_feedback,hardware_devices,assistant (codebook v1),"an audible controller is a device symptom, not a product-information question"
+G137,intent,software_game_app,connectivity_xbox_live,software_game_app,assistant (codebook v1),games fail to launch while the console is otherwise online (T3)
+G140,escalate,no,yes,no,assistant (codebook v1),enforcement is auto with the policy template; support cannot act on enforcement
+G143,escalate,no,yes,no,assistant (codebook v1),enforcement stays auto by policy even when an account check is requested
+G145,intent,purchases_billing_orders,support_process_complaint,purchases_billing_orders,assistant (codebook v1),the refund demand is the concrete issue; the phone-support complaint is a cue
+G146,intent,connectivity_xbox_live,support_process_complaint,connectivity_xbox_live,assistant (codebook v1),the server outage is the concrete issue named
+G146,escalate,no,yes,no,assistant (codebook v1),connectivity auto; no failed steps stated
+G147,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),continues the mic setup this customer was working through in the thread
+G147,intent,needs_more_context,software_game_app,software_game_app,assistant (codebook v1),"the thread states the issue, so T12 forbids needs_more_context"
+G147,escalate,no,yes,yes,assistant (codebook v1),'i've done that' states the advised steps failed
+G151,conversation_state,issue_followup,new_issue,issue_followup,assistant (codebook v1),same thread and same code; the customer is still waiting on the earlier item
+G151,intent,entitlements_subscriptions_codes,product_info_feedback,product_info_feedback,assistant (codebook v1),"asks whether a code is transferable, which is a policy question"
+G151,escalate,yes,no,no,assistant (codebook v1),a policy answer with no lookup required
+G152,conversation_state,acknowledgement_closing,issue_followup,acknowledgement_closing,assistant (codebook v1),the customer reports the bug resolved itself after clearing the cache and nothing is pending
+G152,intent,,account_access_profile,,assistant (codebook v1),closing states carry no intent
+G161,intent,software_game_app,connectivity_xbox_live,software_game_app,assistant (codebook v1),"OneGuide cannot find a TV provider while the console is online, so it is an app problem"
+G161,escalate,no,yes,yes,assistant (codebook v1),'i've reset everything' states the steps already failed
+G162,escalate,no,yes,no,assistant (codebook v1),support cannot reassign another person's gamertag; this is a policy answer
+G167,intent,account_access_profile,product_info_feedback,account_access_profile,assistant (codebook v1),child-account and family settings are account_access_profile
+G169,conversation_state,issue_followup,new_issue,new_issue,assistant (codebook v1),a reply to a brand announcement is a new contact
+G169,intent,needs_more_context,hardware_devices,needs_more_context,assistant (codebook v1),"'if my Xbox worked' gives no symptom to act on, so one clarifying question is due"
+G179,escalate,no,yes,no,project owner (recorded policy divergence),human-vs-policy divergence kept: first-line purchase help before handing off
+G180,escalate,yes,no,no,assistant (codebook v1),answers the brand's question about the power setup; no failed step stated
+G181,conversation_state,issue_followup,new_issue,issue_followup,assistant (codebook v1),responds to the brand about the same Kinect feature
+G185,conversation_state,social_offtopic,issue_followup,issue_followup,assistant (codebook v1),engages with the diagnosis of the console fault raised earlier in the thread
+G185,intent,,hardware_devices,hardware_devices,assistant (codebook v1),the thread's issue is the failing console
+G192,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),reports back on the suggestion inside their own thread
+G197,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),a further error code for the console fault raised earlier in the thread
+G198,conversation_state,new_issue,issue_followup,issue_followup,assistant (codebook v1),adds detail to the overheating issue raised earlier in the thread

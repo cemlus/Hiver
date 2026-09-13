@@ -106,10 +106,12 @@ def merge_adjudication(fresh: pd.DataFrame) -> pd.DataFrame:
 
 
 def finalize(human: pd.DataFrame, adjudication: pd.DataFrame) -> pd.DataFrame:
-    unresolved = adjudication[adjudication["final"].str.strip() == ""]
+    # A row counts as resolved when someone has signed it, not when `final` is non-empty: an empty
+    # `final` is a legitimate label for the states that carry no intent.
+    unresolved = adjudication[adjudication["decided_by"].str.strip() == ""]
     if len(unresolved):
         sys.exit(f"{len(unresolved)} unresolved disagreement(s) in {ADJUDICATION.name}: "
-                 f"fill `final` (and `decided_by`, `rationale`) for "
+                 f"fill `decided_by` (with `final` and `rationale`) for "
                  f"{', '.join(unresolved['golden_id'] + '/' + unresolved['field'])}")
     final = human.copy()
     final.insert(len(final.columns), "adjudicated", "")
