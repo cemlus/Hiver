@@ -5,17 +5,21 @@
     "always_escalate",
     "never_escalate",
     "keyword_rule",
-    "tfidf_lr"
+    "tfidf_lr",
+    "cue_rule",
+    "tfidf_lr_cues"
   ],
   "llm_calls": 0,
-  "started_utc": "2026-09-13T12:53:21+00:00",
-  "finished_utc": "2026-09-13T12:54:09+00:00",
+  "started_utc": "2026-09-13T13:15:37+00:00",
+  "finished_utc": "2026-09-13T13:16:50+00:00",
   "seconds_per_system": {
-    "majority": 0.416,
+    "majority": 0.348,
     "always_escalate": 0.006,
-    "never_escalate": 0.008,
-    "keyword_rule": 0.022,
-    "tfidf_lr": 1.7
+    "never_escalate": 0.006,
+    "keyword_rule": 0.023,
+    "tfidf_lr": 2.644,
+    "cue_rule": 0.043,
+    "tfidf_lr_cues": 2.539
   },
   "bootstrap_resamples": 10000,
   "seed": 42,

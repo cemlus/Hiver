@@ -296,4 +296,40 @@ comes from. It will be trimmed to the best 10–15 for submission.
   calibration script; `tests/test_escalate.py` replays the 40 dev items with their labelled cues and
   requires the same decisions and risk levels the frozen calibration produced, so the port cannot
   drift.
+- **[P6] Cues are extracted at evaluation time, never added to the golden set.**
+  `src/core/cues.py` implements the frozen `risk_rules` definitions as regexes over the raw message
+  and the customer's own earlier turns; brand turns are read only to detect `prior_clarification`.
+  No cue, risk or reason column is ever written to an evaluation file, and `golden.lock` still
+  matches.
+  - Validated on **dev**, which carries labelled cue columns: micro precision 0.74, recall 0.73
+    (`results/eval/cue_extractor_dev.md`). `tests/test_cues.py` pins those numbers so a later change
+    cannot silently trade recall away. Never tuned against golden results.
+  - Deliberate misses are kept where a dev cue label goes beyond the codebook definition: a plain
+    refund how-to labelled `money_dispute`, for instance. The frozen definition wins.
+  - Disclosure: the earlier, weaker patterns inside `baselines.py` were written after reading 61
+    golden messages during adjudication, so they may be indirectly informed by golden content. The
+    new extractor was written from the codebook and refined only on dev. `keyword_rule` keeps the
+    old patterns unchanged so the comparison stays honest, and its predictions are byte-identical
+    before and after this change.
+- **[P6] The baseline grid separates semantic classification from policy-cue handling.** Adding the
+  cue extractor to both a regex classifier (`cue_rule`) and a statistical one (`tfidf_lr_cues`)
+  isolates what each contributes:
+
+  | system | intent source | cues | state | intent macro-F1 | esc P / R | joint |
+  |---|---|---|---|---|---|---|
+  | `keyword_rule` | regex | weak (legacy) | 0.86 | 0.36 | 0.65 / 0.46 | 0.30 |
+  | `cue_rule` | regex | codebook extractor | 0.86 | 0.36 | 0.64 / **0.66** | 0.30 |
+  | `tfidf_lr` | learned | none (cue-blind) | 0.73 | 0.41 | 0.41 / 0.09 | 0.24 |
+  | `tfidf_lr_cues` | learned | codebook extractor | 0.73 | 0.41 | 0.59 / **0.61** | 0.30 |
+
+  - **Explicit cue extraction is what carries escalation recall**: 0.09 → 0.61 on the statistical
+    classifier and 0.46 → 0.66 on the regex one, at comparable precision. Intent accuracy alone does
+    not produce safe routing.
+  - **Intent classification and escalation are close to independent**: cues leave intent macro-F1
+    and state accuracy untouched, because escalation is computed by the frozen policy from cues plus
+    the predicted intent.
+  - This sets the question for Phase 7: the LLM has to earn its cost on **semantic** work — state
+    and intent, and the cues regexes cannot reach (`account_specific_action` recall 0.50,
+    `repeat_contact` 0.56 on dev) — because the deterministic floor for escalation is already 0.66
+    recall at 0.64 precision.
 

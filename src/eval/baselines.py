@@ -21,6 +21,7 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from src.config import load_config
 from src.contracts import (AgentOutput, ConversationState, EscalationDecision, GoldenExample,
                            Intent, ReasonCode, TriggeredBy)
+from src.core.cues import cues_for
 from src.core.escalate import Cues, decide
 from src.eval.training_labels import intent_training_set, state_training_set, training_corpus
 
@@ -77,7 +78,8 @@ _INTENT_RE = [(intent, re.compile(pattern, re.I)) for intent, pattern in INTENT_
 
 
 def keyword_cues(example: GoldenExample) -> Cues:
-    """Cues from the customer's own words plus the shape of the context. Input-side only."""
+    """The ORIGINAL, weaker cue reading kept so `keyword_rule` stays frozen for comparison.
+    `src/core/cues.py` holds the codebook-derived extractor used by the cue-enhanced baselines."""
     text = example.request.customer_text
     flags = {name: bool(rx.search(text)) for name, rx in _CUE_RE.items()}
     turns = example.request.context
@@ -196,10 +198,43 @@ def tfidf_lr(examples: list[GoldenExample]) -> list[AgentOutput]:
     return outputs
 
 
+# --- cue-enhanced deterministic baselines --------------------------------------------------------
+# These isolate the contribution of explicit policy-cue extraction. The cues come from
+# src/core/cues.py, derived from the frozen codebook and validated on dev
+# (results/eval/cue_extractor_dev.md), never tuned against golden results. No cue labels are added
+# to any evaluation file: cues are computed at evaluation time from the raw message and context.
+def cue_rule(examples: list[GoldenExample]) -> list[AgentOutput]:
+    """Regex intent + the codebook-derived cue extractor. Same routing as `keyword_rule`, so the
+    difference between the two is purely the quality of the cue extraction."""
+    outputs = []
+    for example in examples:
+        state = _keyword_state(example)
+        intent = None if state in {ConversationState.ACKNOWLEDGEMENT_CLOSING,
+                                   ConversationState.SOCIAL_OFFTOPIC} else _keyword_intent(example)
+        decision = decide(intent, cues_for(example.request))
+        outputs.append(_output(example, state, intent, decision, "cue_rule"))
+    return outputs
+
+
+def tfidf_lr_cues(examples: list[GoldenExample]) -> list[AgentOutput]:
+    """Learned intent + the codebook-derived cue extractor: the difference from `tfidf_lr` is
+    exactly what explicit policy-cue handling adds to a cue-blind statistical classifier."""
+    base = {o.request_id: o for o in tfidf_lr(examples)}
+    outputs = []
+    for example in examples:
+        predicted = base[example.request.request_id]
+        decision = decide(predicted.intent, cues_for(example.request))
+        outputs.append(_output(example, predicted.conversation_state, predicted.intent, decision,
+                               "tfidf_lr_cues", predicted.intent_confidence))
+    return outputs
+
+
 BASELINES = {
     "majority": majority,
     "always_escalate": always_escalate,
     "never_escalate": never_escalate,
     "keyword_rule": keyword_rule,
     "tfidf_lr": tfidf_lr,
+    "cue_rule": cue_rule,
+    "tfidf_lr_cues": tfidf_lr_cues,
 }
