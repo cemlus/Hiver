@@ -365,6 +365,17 @@ _The original Phase 3 plan, kept for the record:_
 
 **Decision log:** codebook-as-truth; intent count; escalation definition; Banking77 skipped.
 
+### Phase 4 — Typed contracts ✅ DONE (2026-09-13)
+**Outcome.** `src/contracts/` holds `enums.py` (ConversationState 4, Intent 11, RiskLevel,
+ReasonCode incl. STEPS_FAILED, TriggeredBy, Split, WeakLabelSource) and `models.py`
+(`Turn`, `SupportRequest` frozen, `Classification`, `RetrievedExample`, `EscalationDecision`,
+`AgentState`, `AgentOutput`, `GoldenExample`, `finalize()`).
+Validators enforce the codebook: no intent on closing/social states, an intent on issue states,
+reason codes matching the escalate flag, and REPLY_FAILED_CHECKS only from the reply validator.
+`tests/test_contracts.py` (14 tests) pins the enums to `taxonomy_v1.yaml`, so the two cannot drift.
+
+_The original Phase 4 plan:_
+
 ### Phase 4 — Typed contracts (~2h)
 `src/contracts/` (pydantic v2):
 - `enums.py`: `Intent` (mirrors codebook v1), `ReasonCode`, `Split`, `WeakLabelSource`.
@@ -428,6 +439,25 @@ _Original Phase 5 text:_
 - Add a test using a fake clock.
 - Check the quotas at ai.dev/rate-limit and size bulk jobs to fit them. The cache makes bulk jobs **resumable across days**: a rerun skips work that's already done.
 - If the daily quota is too small, either reduce the weak-label count (e.g. 1k) or enable billing (which also unlocks a Pro judge).
+
+### Phase 6 — Non-LLM routing baselines ✅ DONE (2026-09-13)
+**Outcome.** `src/core/escalate.py` (frozen policy, dev-replay regression test),
+`src/eval/training_labels.py` (206 labelled non-golden records, provenance recorded),
+`src/eval/baselines.py` (5 systems), `src/eval/metrics.py` (bootstrap CIs),
+`scripts/run_routing_eval.py` → `results/eval/routing_baselines.md`. 96 tests pass, 0 LLM calls.
+
+| system | state acc | intent macro-F1 | esc P/R | joint |
+|---|---|---|---|---|
+| majority / never_escalate | 0.65 | 0.01 | – / 0.00 | 0.04 |
+| always_escalate | 0.65 | 0.01 | 0.37 / 1.00 | 0.01 |
+| keyword_rule | 0.86 | 0.36 | 0.65 / 0.46 | 0.30 |
+| tfidf_lr (weakly supervised) | 0.73 | 0.41 | 0.41 / 0.09 | 0.23 |
+
+**The floor the agent must beat: state 0.86, intent macro-F1 0.41, joint routing 0.30, and the
+0.65/0.46 escalation trade-off.** The ~2,000-call weak-label phase is NOT built; decide after the
+first real classifier whether it is needed at all.
+
+_The original Phase 6 plan:_
 
 ### Phase 6 — Weak supervision & baselines (~2.5h)
 1. `src/dataprep/weak_intents.py`: the LLM applies codebook v1 to ~2k **train** records (count adjusted per 5b). Output: `data/processed/weak_labels.parquet` with `weak_intent, weak_intent_confidence, weak_label_source="llm:<model>", codebook_version`.

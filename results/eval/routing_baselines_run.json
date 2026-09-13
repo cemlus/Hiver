@@ -1,0 +1,59 @@
+{
+  "run": "routing_baselines",
+  "systems": [
+    "majority",
+    "always_escalate",
+    "never_escalate",
+    "keyword_rule",
+    "tfidf_lr"
+  ],
+  "llm_calls": 0,
+  "started_utc": "2026-09-13T12:53:21+00:00",
+  "finished_utc": "2026-09-13T12:54:09+00:00",
+  "seconds_per_system": {
+    "majority": 0.416,
+    "always_escalate": 0.006,
+    "never_escalate": 0.008,
+    "keyword_rule": 0.022,
+    "tfidf_lr": 1.7
+  },
+  "bootstrap_resamples": 10000,
+  "seed": 42,
+  "codebook_version": "v1",
+  "taxonomy_status": "frozen",
+  "escalation_status": "frozen",
+  "golden_lock_sha256": "792caedc776e201bf8844cd048b7e77c49942b0fcd95d9884c86ad8864d43645",
+  "golden_final_sha256": "a08ab51ac56f6216b8be7bed53678be77e5c7a510b49422930709cd106bf91c7",
+  "training_corpus": {
+    "items": 206,
+    "with_intent": 186,
+    "sources": [
+      {
+        "sources": "codebook_examples",
+        "items": 16,
+        "with_intent": 16,
+        "with_state": 0
+      },
+      {
+        "sources": "codebook_examples+discovery_sample",
+        "items": 80,
+        "with_intent": 73,
+        "with_state": 80
+      },
+      {
+        "sources": "dev_labels",
+        "items": 40,
+        "with_intent": 37,
+        "with_state": 40
+      },
+      {
+        "sources": "discovery_sample",
+        "items": 70,
+        "with_intent": 60,
+        "with_state": 70
+      }
+    ],
+    "weakly_supervised": true
+  },
+  "must_escalate_limitation": "must_escalate_recall_cue_blind is a PROXY, not the metric originally specified. The locked golden sheet carries no cue, risk or reason columns, so risk is derived by running the frozen policy cue-blind over the gold intent, which yields the intent's default risk. Items that would reach high risk only through the SECURITY / SAFETY_LEGAL / BILLING_DISPUTE cue rules cannot be identified, so this proxy under-counts the true must-escalate set."
+}

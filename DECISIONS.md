@@ -269,4 +269,31 @@ comes from. It will be trimmed to the best 10–15 for submission.
   flag, which means "answers a brand reply" — a different rule from the codebook's `issue_followup`.
   The sheet therefore gave the labeller a cue that contradicted the codebook, which explains most of
   the state disagreements.
+- **[P6] `must_escalate_recall` is not reproducible on this golden set; a named proxy replaces it.**
+  The metric was defined over gold `risk_level` / `reason_code`, but the labeller kept only the four
+  scored fields, so those columns do not exist. The frozen policy is instead run **cue-blind** over
+  the gold intent, which deterministically yields the intent's default risk, and the metric is
+  reported as **`must_escalate_recall_cue_blind`** (25 of 200 items) with its limitation printed
+  beside every number: items that would reach high risk only through the SECURITY / SAFETY_LEGAL /
+  BILLING_DISPUTE cue rules cannot be identified, so the proxy under-counts. Overall escalation
+  precision/recall over all 74 gold-escalate items is always reported next to it. Future labelling
+  rounds must keep the cue/risk/reason columns.
+- **[P6] Non-LLM baselines first, at zero quota, to establish the floor.** `src/eval/baselines.py`:
+  majority, always-escalate, never-escalate, a deterministic keyword/rule system, and a TF-IDF +
+  logistic-regression classifier. Escalation always runs through the frozen policy in
+  `src/core/escalate.py` rather than being reinvented per baseline.
+  - `keyword_rule` is the strongest floor: state 0.86, intent macro-F1 0.36, joint routing 0.30.
+  - `tfidf_lr` wins intent macro-F1 (0.41) but collapses on escalation (recall 0.09) because it is
+    cue-blind: with no cue signals it escalates only the always-escalate intents.
+  - `always_escalate` reaches recall 1.00 at precision 0.37, which is simply the gold escalation
+    rate. Any system claiming safety must beat that trade-off, not just the recall.
+- **[P6] The TF-IDF baseline is weakly supervised, and labelled as such everywhere.** It trains on
+  206 labelled non-golden records (186 with an intent) assembled by `src/eval/training_labels.py`
+  from three sources, all assistant-coded or LLM-drafted: the 150-row discovery sample, 88 intent +
+  14 state example ids in `taxonomy_v1.yaml`, and the 40 dev items. Zero overlap with the golden set
+  is asserted in code and in `tests/test_baselines.py`. Its ceiling is the quality of those labels.
+- **[P6] The frozen escalation policy now lives in `src/core/escalate.py`.** Ported from the
+  calibration script; `tests/test_escalate.py` replays the 40 dev items with their labelled cues and
+  requires the same decisions and risk levels the frozen calibration produced, so the port cannot
+  drift.
 

@@ -127,9 +127,9 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 - [x] Phase 2: ingestion, cleaning, splits, weak outcome labels ([`results/phase2_data_report.md`](results/phase2_data_report.md))
 - [x] Phase 3a: intent taxonomy frozen ([`data/codebook.md`](data/codebook.md), [`results/taxonomy/proposal.md`](results/taxonomy/proposal.md))
 - [x] Phase 3b: escalation policy calibrated on the dev set and frozen ([`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md))
-- [ ] Phase 4: typed contracts
+- [x] Phase 4: typed contracts (`src/contracts/`: enums pinned to the frozen codebook, pydantic models, `finalize()`)
 - [ ] Phase 5: dev + golden labelling (dev done; golden sampled, awaiting human labels)
-- [ ] Phase 6: weak supervision & baselines
+- [x] Phase 6: non-LLM routing baselines ([`results/eval/routing_baselines.md`](results/eval/routing_baselines.md)); the ~2k weak-label pass is deferred until the agent shows it is needed
 - [ ] Phase 7: core business logic
 - [ ] Phase 8: LangGraph orchestration
 - [ ] Phase 9: evaluation harness + LLM judge + human agreement
