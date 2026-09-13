@@ -10,16 +10,16 @@
     "tfidf_lr_cues"
   ],
   "llm_calls": 0,
-  "started_utc": "2026-09-13T13:15:37+00:00",
-  "finished_utc": "2026-09-13T13:16:50+00:00",
+  "started_utc": "2026-09-13T13:32:11+00:00",
+  "finished_utc": "2026-09-13T13:33:24+00:00",
   "seconds_per_system": {
     "majority": 0.348,
-    "always_escalate": 0.006,
+    "always_escalate": 0.008,
     "never_escalate": 0.006,
     "keyword_rule": 0.023,
-    "tfidf_lr": 2.644,
-    "cue_rule": 0.043,
-    "tfidf_lr_cues": 2.539
+    "tfidf_lr": 2.601,
+    "cue_rule": 0.044,
+    "tfidf_lr_cues": 2.655
   },
   "bootstrap_resamples": 10000,
   "seed": 42,

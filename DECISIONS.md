@@ -332,4 +332,33 @@ comes from. It will be trimmed to the best 10–15 for submission.
     and intent, and the cues regexes cannot reach (`account_specific_action` recall 0.50,
     `repeat_contact` 0.56 on dev) — because the deterministic floor for escalation is already 0.66
     recall at 0.64 precision.
+- **[P7] The routing agent: the model proposes, `src/core/escalate.py` decides.**
+  `src/core/prompts.py` renders the frozen codebook into a versioned prompt
+  (`CLASSIFIER_PROMPT_VERSION = routing_v1`) that asks for the conversation state, the primary
+  intent, the nine policy cues and a confidence — and states plainly that the model does not decide
+  escalation. `RoutingProposal` has **no escalate field**, so the model cannot express one, and
+  `tests/test_route.py` asserts both facts.
+  - Malformed proposals are repaired deterministically and the repair is written to the trace: an
+    intent on a state that carries none is dropped; a missing intent on an issue state becomes
+    `needs_more_context` (codebook T12).
+  - `classify_with_fallback_cues` unions the model's cues with the deterministic extractor. Union is
+    safe because cues only ever raise risk, so it cannot drop a signal the regexes already catch.
+  - Rule (h): a confidence below `thresholds.intent_confidence` escalates as LOW_CONFIDENCE with
+    `triggered_by = model`. The threshold is chosen on **dev** by
+    `scripts/calibrate_agent_threshold.py`, which never loads the golden set.
+- **[P7] BLOCKED on production-model quota, not on code.** `gemini/gemini-2.5-flash` has the same
+  free-tier cap as the judge model did: `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, **20
+  requests per day**. Dev calibration needs 40 calls and the golden run 200, so at 20/day the agent
+  cannot be evaluated. 13 of 40 dev classifications are cached; the rest returned HTTP 429.
+  - Measured alternative: Groq serves 1,000 requests/day per model at 8,000 tokens/minute
+    (`qwen/qwen3.8-27b` answered in 1.9 s). With a ~3.7k-token system prompt that is roughly two
+    calls a minute, so 200 items is about 100 minutes — feasible.
+  - **Reusing `gemma-4-26b-a4b-it` as the production model would contaminate the evaluation**: it
+    produced the second-opinion labels that fed adjudication and therefore shaped `golden_final.csv`.
+    The agent would be graded partly against its own earlier judgements.
+- **[P6→report] Clean baselines are separated from the legacy one.** `results/eval/routing_baselines.md`
+  now presents majority, always/never-escalate, `tfidf_lr`, `tfidf_lr_cues` and `cue_rule` as the
+  clean floor, with `keyword_rule` in its own section: its cue regexes were written after the
+  assistant had read 61 golden messages during adjudication, so it may be indirectly informed by
+  golden content.
 
