@@ -28,6 +28,9 @@ sys.path.insert(0, str(ROOT))
 from src.config import load_config, resolve  # noqa: E402
 from src.contracts import ConversationState, GoldenExample, Intent, SupportRequest, Turn  # noqa: E402
 from src.dataprep.loaders import eval_pool  # noqa: E402
+from src.ports.factory import build_deps  # noqa: E402
+from src.core.prompts import CLASSIFIER_PROMPT_VERSION  # noqa: E402
+from src.eval.agent_runner import run_agent  # noqa: E402
 from src.eval.baselines import BASELINES  # noqa: E402
 from src.eval.metrics import MUST_ESCALATE_LIMITATION, RoutingResult, evaluate  # noqa: E402
 from src.eval.training_labels import provenance_summary, training_corpus  # noqa: E402
@@ -80,9 +83,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--systems", default=",".join(BASELINES), help="comma-separated system names")
     parser.add_argument("--boot", type=int, default=10_000, help="bootstrap resamples")
+    parser.add_argument("--limit", type=int, default=0, help="first N items only (smoke tests)")
+    parser.add_argument("--sleep", type=float, default=32.0,
+                        help="seconds between agent calls (Groq free tier is 8k tokens/minute)")
     args = parser.parse_args()
     systems = [s for s in args.systems.split(",") if s]
-    unknown = [s for s in systems if s not in BASELINES]
+    unknown = [s for s in systems if s not in BASELINES and s != "agent"]
     if unknown:
         sys.exit(f"unknown system(s): {unknown}. Available: {sorted(BASELINES)}")
 
@@ -90,12 +96,44 @@ def main() -> None:
     started = datetime.now(timezone.utc)
     final = load_examples(GOLDEN / "golden_final.csv")
     human = load_examples(GOLDEN / "golden_labeling_sheet.csv")
+    if args.limit:
+        final, human = final[: args.limit], human[: args.limit]
+    agent_manifest: dict = {}
     (OUT / "predictions").mkdir(parents=True, exist_ok=True)
 
     results, human_results, slice_results, timings = [], [], {}, {}
     for name in systems:
         t0 = time.time()
-        predictions = BASELINES[name](final)
+        if name == "agent":
+            deps = build_deps(profile="eval", config=cfg)
+            agent_cfg = cfg["models"]["agent"]
+            run = run_agent(final, deps.agent_llm,
+                            confidence_threshold=cfg["thresholds"]["intent_confidence"],
+                            union_cues=True, system="agent", attempts=4, sleep=args.sleep)
+            if not run.complete:
+                sys.exit(f"agent failed on {len(run.failures)} item(s): {run.failures[:3]}. "
+                         "Rerun to resume; cached items cost nothing.")
+            predictions = run.outputs
+            agent_manifest = {
+                "model": agent_cfg["name"], "route": "groq", "params": agent_cfg,
+                "prompt_version": CLASSIFIER_PROMPT_VERSION,
+                "cue_mode": "model cues UNION codebook-derived deterministic extractor (chosen on dev)",
+                "confidence_threshold": cfg["thresholds"]["intent_confidence"],
+                "confidence_note": ("Rule (h) is inert by design: on dev the router reported only "
+                                    "0.90/0.95 and every error carried 0.95, so confidence is not a "
+                                    "working safeguard."),
+                "tokens": run.tokens, "schema_retries": run.schema_retries,
+                "failures": run.failures,
+                "latency_ms": {"mean": sum(run.latencies_ms) / len(run.latencies_ms),
+                               "max": max(run.latencies_ms)},
+                "structured_output": "JSON Schema in the prompt + pydantic validation (P0 decision)",
+                "provider_status": ("qwen3.8-27b is a Groq PREVIEW model, evaluated under the free "
+                                    "tier's 200,000 tokens/day (rolling) and 8,000 tokens/minute "
+                                    "limits. Preview availability is not a production guarantee."),
+                "quota_sessions": (json.loads((OUT / "agent_golden_progress.json").read_text())
+                                   if (OUT / "agent_golden_progress.json").exists() else None)}
+        else:
+            predictions = BASELINES[name](final)
         timings[name] = round(time.time() - t0, 3)
         with (OUT / "predictions" / f"{name}.jsonl").open("w", encoding="utf-8") as fh:
             for p in predictions:
@@ -177,6 +215,7 @@ def main() -> None:
                             "sources": provenance_summary().to_dict("records"),
                             "weakly_supervised": True},
         "must_escalate_limitation": MUST_ESCALATE_LIMITATION,
+        "agent": agent_manifest,
     }
     (OUT / "routing_baselines_run.json").write_text(json.dumps(manifest, indent=2) + "\n",
                                                     encoding="utf-8")

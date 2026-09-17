@@ -14,6 +14,7 @@ Every system here is derived from the frozen codebook and the non-golden trainin
 | `tfidf_lr` | 0.73 [0.67–0.80] | 0.50 [0.36–0.62] | 0.41 [0.32–0.47] | 0.41 [0.18–0.67] | 0.09 [0.03–0.17] | 0.20 [0.05–0.37] | 0.23 [0.18–0.29] |
 | `cue_rule` | 0.86 [0.81–0.91] | 0.60 [0.51–0.67] | 0.36 [0.29–0.41] | 0.64 [0.54–0.75] | 0.66 [0.55–0.77] | 0.76 [0.58–0.92] | 0.29 [0.23–0.36] |
 | `tfidf_lr_cues` | 0.73 [0.67–0.80] | 0.50 [0.36–0.62] | 0.41 [0.32–0.47] | 0.59 [0.48–0.70] | 0.61 [0.49–0.72] | 0.68 [0.48–0.86] | 0.30 [0.23–0.36] |
+| `agent` | 0.94 [0.90–0.96] | 0.85 [0.74–0.93] | 0.82 [0.73–0.89] | 0.71 [0.61–0.79] | 0.97 [0.93–1.00] | 0.96 [0.86–1.00] | 0.71 [0.65–0.77] |
 
 > **must_escalate_recall_cue_blind is a PROXY, not the metric originally specified. The locked golden sheet carries no cue, risk or reason columns, so risk is derived by running the frozen policy cue-blind over the gold intent, which yields the intent's default risk. Items that would reach high risk only through the SECURITY / SAFETY_LEGAL / BILLING_DISPUTE cue rules cannot be identified, so this proxy under-counts the true must-escalate set.**
 
@@ -36,6 +37,7 @@ Every system here is derived from the frozen codebook and the non-golden trainin
 | `tfidf_lr` | 0.72 [0.66–0.79] | 0.47 [0.33–0.59] | 0.40 [0.31–0.46] | 0.41 [0.18–0.67] | 0.09 [0.03–0.16] | 0.21 [0.05–0.38] | 0.23 [0.17–0.28] |
 | `cue_rule` | 0.89 [0.84–0.93] | 0.61 [0.52–0.68] | 0.37 [0.30–0.42] | 0.63 [0.52–0.74] | 0.64 [0.53–0.75] | 0.79 [0.61–0.95] | 0.28 [0.22–0.35] |
 | `tfidf_lr_cues` | 0.72 [0.66–0.79] | 0.47 [0.33–0.59] | 0.40 [0.31–0.46] | 0.55 [0.44–0.66] | 0.56 [0.44–0.67] | 0.71 [0.52–0.88] | 0.27 [0.21–0.33] |
+| `agent` | 0.89 [0.84–0.93] | 0.75 [0.62–0.85] | 0.84 [0.75–0.90] | 0.68 [0.58–0.76] | 0.92 [0.85–0.97] | 0.96 [0.86–1.00] | 0.69 [0.62–0.75] |
 
 Differences between the two tables come from the 39 fields adjudication changed across 29 items, not from the systems.
 
@@ -50,6 +52,7 @@ Differences between the two tables come from the 39 fields adjudication changed 
 | `tfidf_lr` | 0.70 [0.62–0.78] | 0.46 [0.30–0.61] | 0.41 [0.28–0.50] | 0.43 [0.00–0.83] | 0.08 [0.00–0.18] | 0.23 [0.00–0.50] | 0.25 [0.17–0.33] |
 | `cue_rule` | 0.82 [0.76–0.89] | 0.56 [0.42–0.66] | 0.33 [0.23–0.41] | 0.67 [0.51–0.81] | 0.68 [0.52–0.83] | 0.85 [0.60–1.00] | 0.28 [0.21–0.37] |
 | `tfidf_lr_cues` | 0.70 [0.62–0.78] | 0.46 [0.30–0.61] | 0.41 [0.28–0.50] | 0.61 [0.45–0.75] | 0.61 [0.44–0.76] | 0.77 [0.50–1.00] | 0.33 [0.24–0.41] |
+| `agent` | 0.92 [0.87–0.97] | 0.80 [0.63–0.91] | 0.80 [0.66–0.89] | 0.71 [0.57–0.83] | 0.97 [0.91–1.00] | 1.00 [1.00–1.00] | 0.74 [0.66–0.82] |
 
 ## Slice: stratified (80 items)
 
@@ -62,22 +65,23 @@ Differences between the two tables come from the 39 fields adjudication changed 
 | `tfidf_lr` | 0.79 [0.70–0.88] | 0.55 [0.33–0.74] | 0.40 [0.27–0.48] | 0.40 [0.10–0.71] | 0.11 [0.03–0.23] | 0.17 [0.00–0.42] | 0.21 [0.12–0.30] |
 | `cue_rule` | 0.91 [0.84–0.96] | 0.67 [0.47–0.74] | 0.36 [0.24–0.45] | 0.62 [0.47–0.78] | 0.64 [0.47–0.79] | 0.67 [0.38–0.93] | 0.31 [0.21–0.41] |
 | `tfidf_lr_cues` | 0.79 [0.70–0.88] | 0.55 [0.33–0.74] | 0.40 [0.27–0.48] | 0.58 [0.42–0.74] | 0.61 [0.45–0.77] | 0.58 [0.29–0.86] | 0.26 [0.17–0.36] |
+| `agent` | 0.96 [0.91–1.00] | 0.97 [0.93–1.00] | 0.83 [0.69–0.92] | 0.70 [0.56–0.82] | 0.97 [0.90–1.00] | 0.92 [0.70–1.00] | 0.66 [0.55–0.76] |
 
-## Per-intent F1 — best system by joint routing (`keyword_rule`)
+## Per-intent F1 — best system by joint routing (`agent`)
 
 | intent | precision | recall | F1 | gold support |
 |---|---|---|---|---|
-| `hardware_devices` | 0.75 | 0.39 | 0.51 | 31 |
-| `product_info_feedback` | 0.25 | 0.03 | 0.06 | 29 |
-| `purchases_billing_orders` | 0.62 | 0.57 | 0.59 | 23 |
-| `entitlements_subscriptions_codes` | 0.38 | 0.44 | 0.41 | 18 |
-| `connectivity_xbox_live` | 0.50 | 0.47 | 0.48 | 17 |
-| `account_access_profile` | 0.62 | 0.47 | 0.53 | 17 |
-| `enforcement_safety` | 0.73 | 0.65 | 0.69 | 17 |
-| `software_game_app` | 0.33 | 0.13 | 0.19 | 15 |
-| `needs_more_context` | 0.12 | 0.86 | 0.21 | 7 ⚠ too few items |
-| `support_process_complaint` | 0.00 | 0.00 | 0.00 | 5 ⚠ too few items |
-| `install_download_update` | 0.17 | 0.50 | 0.25 | 4 ⚠ too few items |
+| `hardware_devices` | 0.90 | 0.90 | 0.90 | 31 |
+| `product_info_feedback` | 0.83 | 0.86 | 0.85 | 29 |
+| `purchases_billing_orders` | 0.95 | 0.87 | 0.91 | 23 |
+| `entitlements_subscriptions_codes` | 0.88 | 0.83 | 0.86 | 18 |
+| `connectivity_xbox_live` | 0.89 | 1.00 | 0.94 | 17 |
+| `account_access_profile` | 1.00 | 0.88 | 0.94 | 17 |
+| `enforcement_safety` | 0.94 | 0.94 | 0.94 | 17 |
+| `software_game_app` | 0.75 | 0.60 | 0.67 | 15 |
+| `needs_more_context` | 0.75 | 0.86 | 0.80 | 7 ⚠ too few items |
+| `support_process_complaint` | 0.60 | 0.60 | 0.60 | 5 ⚠ too few items |
+| `install_download_update` | 0.60 | 0.75 | 0.67 | 4 ⚠ too few items |
 
 ⚠ marks intents with fewer than 10 gold items, where per-intent F1 is too unstable to report as a result.
 

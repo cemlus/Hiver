@@ -416,4 +416,20 @@ comes from. It will be trimmed to the best 10–15 for submission.
   - The union is safe by construction: cues only ever raise risk in the frozen policy, so adding the
     extractor can never drop a signal the model found.
   - Dev labels are ChatGPT-assisted, so this is a tuning decision, not a result.
+- **[P7] The golden routing run is quota-limited, and that is recorded, not hidden.**
+  `groq/qwen/qwen3.8-27b` is a **Groq preview model**, evaluated under the free tier's **200,000
+  tokens per day** (a rolling window) and **8,000 tokens per minute**. One routing call costs about
+  4.2k tokens, so roughly 47 items fit in a day and the 200-item run spans several quota windows.
+  Preview availability is an experimental offering, **not a production-provider guarantee**, and the
+  report must not present it as one.
+  - The configuration is unchanged by the constraint: switching models or shrinking the frozen
+    `routing_v1` prompt to fit a quota would convert an infrastructure limit into a methodological
+    change and invalidate the dev A/B that selected the model.
+  - `scripts/warm_agent_cache.py` classifies only items with no cached result, waits out the window
+    the API names instead of retrying into it, and appends every quota wait, token count and elapsed
+    time to `results/eval/agent_golden_progress.json`, which the evaluation manifest embeds.
+  - Diagnosis cost three wrong turns worth recording: the per-minute headers report 8,000/8,000
+    available even while the daily budget is exhausted, so tiny probes succeed and real calls fail;
+    my error truncation (140 chars) hid the message naming TPD; and `pkill -f warm_agent_cache`
+    matched its own shell. The lesson is to read the complete error body before theorising.
 

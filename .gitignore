@@ -14,3 +14,4 @@ data/raw/*
 
 # Assignment brief (not ours to redistribute)
 *.pdf
+logs/
