@@ -433,3 +433,36 @@ comes from. It will be trimmed to the best 10–15 for submission.
     my error truncation (140 chars) hid the message naming TPD; and `pkill -f warm_agent_cache`
     matched its own shell. The lesson is to read the complete error body before theorising.
 
+- **[P10] The response half consumes the routed state; it never recomputes it.** `src/core/respond.py`
+  takes the `AgentState` that `route()` produced and reads the classification and the escalation
+  decision as given. Routing is not re-run, cues are not re-extracted and the policy is not
+  re-evaluated, so the Phase 9 golden numbers cannot move as a side effect of building Phase 10.
+  Verified by regenerating the routing evaluation and diffing `predictions/agent.jsonl`.
+  - The single exception is codebook rule (i): when a drafted reply fails validation after its one
+    revise, the case escalates with `REPLY_FAILED_CHECKS`. The frozen policy deliberately never
+    emits that code, and the contract only accepts it with `triggered_by=validation`, so the
+    validator is the only thing that can produce it.
+  - Escalated cases are never drafted for. `reply` stays empty and no retrieval or generation runs,
+    which also keeps the escalation path free of token cost.
+- **[P10] Grounding means supported, not copied.** A draft is grounded when its substantive claims
+  rest on the customer conversation and/or the retrieved evidence. Paraphrase and synthesis across
+  several retrieved examples are explicitly allowed, and verbatim presence in any one retrieved
+  reply is **not** required. What the validator rejects is the genuinely unsupported: invented
+  links, amounts nobody mentioned, troubleshooting with no evidence behind it, a bare DM deflection,
+  and steps the customer already reported trying.
+  - The DM rule follows directly from the `[P2]` finding that 52% of held-out DM deflections reuse a
+    train template: copying a canned template is the easy way to score well against the historical
+    reply and the least useful thing to send a customer.
+- **[P10] Retrieval is train-only by construction, and the test says so rather than assuming it.**
+  The corpus is `loaders.retrieval_corpus()` — 2,711 train exchanges with a substantive reply. A
+  test asserts the split is train, the reply type is substantive, and the record ids share nothing
+  with the holdout evaluation pool, so golden and dev can never surface as evidence.
+  - `substantive` is a keyword heuristic at roughly 60% precision, so retrieval re-ranks by
+    similarity rather than trusting the flag, and deduplicates by `reply_template` so one canned
+    reply cannot fill the result set.
+  - Embeddings are cached to `data/processed/corpus_embeddings.npy` and committed, for the same
+    reason the LLM cache is committed: the pipeline reproduces without a model download.
+- **[P10] `tests/test_core_no_framework.py` existed only in a docstring.** `src/core/__init__.py`
+  claimed the file enforced the no-langgraph rule; it had never been written. It exists now, and
+  also asserts that importing `src.core.retrieve` does not pull in torch or sentence-transformers,
+  since the embedding model is loaded lazily.

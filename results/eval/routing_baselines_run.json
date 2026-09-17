@@ -11,17 +11,17 @@
     "agent"
   ],
   "llm_calls": 0,
-  "started_utc": "2026-09-17T19:01:38+00:00",
-  "finished_utc": "2026-09-17T19:03:42+00:00",
+  "started_utc": "2026-09-17T19:46:39+00:00",
+  "finished_utc": "2026-09-17T19:47:59+00:00",
   "seconds_per_system": {
-    "majority": 0.625,
-    "always_escalate": 0.013,
-    "never_escalate": 0.01,
-    "keyword_rule": 0.038,
-    "tfidf_lr": 2.184,
-    "cue_rule": 0.072,
-    "tfidf_lr_cues": 2.459,
-    "agent": 0.357
+    "majority": 0.368,
+    "always_escalate": 0.007,
+    "never_escalate": 0.008,
+    "keyword_rule": 0.024,
+    "tfidf_lr": 2.537,
+    "cue_rule": 0.046,
+    "tfidf_lr_cues": 2.259,
+    "agent": 0.275
   },
   "bootstrap_resamples": 10000,
   "seed": 42,
@@ -86,8 +86,8 @@
     "schema_retries": 0,
     "failures": [],
     "latency_ms": {
-      "mean": 1.7534244060516357,
-      "max": 47.20282554626465
+      "mean": 1.3423502445220947,
+      "max": 40.73190689086914
     },
     "structured_output": "JSON Schema in the prompt + pydantic validation (P0 decision)",
     "provider_status": "qwen3.8-27b is a Groq PREVIEW model, evaluated under the free tier's 200,000 tokens/day (rolling) and 8,000 tokens/minute limits. Preview availability is not a production guarantee.",

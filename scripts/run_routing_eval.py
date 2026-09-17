@@ -79,6 +79,56 @@ def metric_table(results: list[RoutingResult]) -> list[str]:
     return lines + [""]
 
 
+def escalation_direction(gold, predictions) -> tuple[int, int]:
+    """(over-escalations, under-escalations) for one system, matched by request_id."""
+    truth = {e.request.request_id: e.label_escalate for e in gold}
+    over = under = 0
+    for p in predictions:
+        want = truth.get(p.request_id)
+        if want is None:
+            continue
+        over += int(p.escalate and not want)
+        under += int(want and not p.escalate)
+    return over, under
+
+
+def how_to_read(results, system_predictions, final) -> list[str]:
+    """The framing the project owner asked for: one headline, and its cost stated plainly."""
+    agent = next((r for r in results if r.system == "agent"), None)
+    if agent is None:
+        return []
+    m = agent.metrics
+    joint = m["joint_routing_correctness"].value
+    over, under = escalation_direction(final, system_predictions.get("agent", []))
+    return [
+        "## How to read these numbers", "",
+        f"**Joint routing correctness ({joint:.2f}) is the end-to-end headline.** It is the share "
+        "of items where the conversation state, the intent (when one is due) and the escalation "
+        "decision are ALL correct at once. Equivalently, "
+        f"**{1 - joint:.0%} of items still carry at least one routing error** \u2014 this is a useful "
+        "router, not a solved problem.", "",
+        f"Underneath it: intent macro-F1 **{m['intent_macro_f1'].value:.2f}**, escalation recall "
+        f"**{m['escalation_recall'].value:.2f}**, escalation precision "
+        f"**{m['escalation_precision'].value:.2f}**.", "",
+        "**The escalation figures are a deliberate safety/coverage trade-off, not uniform "
+        f"strength.** Of the escalation errors, **{over} are over-escalations and {under} are "
+        f"under-escalations**. Near-complete coverage of cases that need a human is bought by "
+        "sending a substantial share of auto-handled cases to a human unnecessarily. That is the "
+        "right direction for support triage \u2014 a missed escalation reaches a customer as an "
+        "unanswered problem, while a false one costs an agent a few seconds of triage \u2014 but it "
+        "is a real cost, and the precision column is where it shows.", "",
+        "**`must_escalate_recall_cue_blind` is a documented proxy**, not the metric originally "
+        "specified (see the note under the headline table). It under-counts the true must-escalate "
+        "set and must never be quoted as the specified metric.", "",
+        "**Read the sensitivity table as well.** Every number here is repeated against the primary "
+        "human labels alone, before adjudication; the ranking does not rest on the adjudicated "
+        "layer.", "",
+        "**The 95% intervals are bootstrap percentile intervals, not a significance test.** No "
+        "paired statistical test was run, so differences between systems must not be described as "
+        "statistically significant.", "",
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--systems", default=",".join(BASELINES), help="comma-separated system names")
@@ -102,6 +152,7 @@ def main() -> None:
     (OUT / "predictions").mkdir(parents=True, exist_ok=True)
 
     results, human_results, slice_results, timings = [], [], {}, {}
+    system_predictions: dict = {}
     for name in systems:
         t0 = time.time()
         if name == "agent":
@@ -139,6 +190,7 @@ def main() -> None:
             for p in predictions:
                 fh.write(p.model_dump_json() + "\n")
         results.append(evaluate(final, predictions, name, n_boot=args.boot, seed=cfg["seed"]))
+        system_predictions[name] = predictions
         human_results.append(evaluate(human, predictions, name, n_boot=args.boot, seed=cfg["seed"]))
         for slice_name in ("random", "stratified"):
             subset = [e for e in final if e.slice.startswith(slice_name)]
@@ -159,6 +211,7 @@ def main() -> None:
         "only.", "",
         *metric_table([r for r in results if r.system not in LEGACY_SYSTEMS]),
         f"> **{MUST_ESCALATE_LIMITATION}**", "",
+        *how_to_read(results, system_predictions, final),
         "### Legacy baseline, not part of the clean comparison", "",
         "`keyword_rule`'s cue regexes were written after the assistant had read 61 golden messages "
         "during adjudication, so they may be indirectly informed by golden content. It is reported "

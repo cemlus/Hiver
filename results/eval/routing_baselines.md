@@ -18,6 +18,20 @@ Every system here is derived from the frozen codebook and the non-golden trainin
 
 > **must_escalate_recall_cue_blind is a PROXY, not the metric originally specified. The locked golden sheet carries no cue, risk or reason columns, so risk is derived by running the frozen policy cue-blind over the gold intent, which yields the intent's default risk. Items that would reach high risk only through the SECURITY / SAFETY_LEGAL / BILLING_DISPUTE cue rules cannot be identified, so this proxy under-counts the true must-escalate set.**
 
+## How to read these numbers
+
+**Joint routing correctness (0.71) is the end-to-end headline.** It is the share of items where the conversation state, the intent (when one is due) and the escalation decision are ALL correct at once. Equivalently, **29% of items still carry at least one routing error** — this is a useful router, not a solved problem.
+
+Underneath it: intent macro-F1 **0.82**, escalation recall **0.97**, escalation precision **0.71**.
+
+**The escalation figures are a deliberate safety/coverage trade-off, not uniform strength.** Of the escalation errors, **30 are over-escalations and 2 are under-escalations**. Near-complete coverage of cases that need a human is bought by sending a substantial share of auto-handled cases to a human unnecessarily. That is the right direction for support triage — a missed escalation reaches a customer as an unanswered problem, while a false one costs an agent a few seconds of triage — but it is a real cost, and the precision column is where it shows.
+
+**`must_escalate_recall_cue_blind` is a documented proxy**, not the metric originally specified (see the note under the headline table). It under-counts the true must-escalate set and must never be quoted as the specified metric.
+
+**Read the sensitivity table as well.** Every number here is repeated against the primary human labels alone, before adjudication; the ranking does not rest on the adjudicated layer.
+
+**The 95% intervals are bootstrap percentile intervals, not a significance test.** No paired statistical test was run, so differences between systems must not be described as statistically significant.
+
 ### Legacy baseline, not part of the clean comparison
 
 `keyword_rule`'s cue regexes were written after the assistant had read 61 golden messages during adjudication, so they may be indirectly informed by golden content. It is reported for completeness and excluded from the clean floor.

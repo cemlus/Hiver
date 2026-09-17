@@ -5,7 +5,7 @@ classifies each customer tweet's intent, drafts a reply grounded in how the bran
 before, and decides whether to auto-handle or escalate (with a reason). The repo also contains
 the evaluation harness that measures how far the agent can be trusted.
 
-> **Status:** Phases 0–3 complete. Taxonomy **frozen** (11 intents, 4 conversation states) and
+> **Status:** Phases 0–10 complete (Phase 8 orchestration and Phase 11 judge outstanding). Taxonomy **frozen** (11 intents, 4 conversation states) and
 > escalation policy **frozen** after calibration on the 40-item dev set. Golden set labelled by hand and locked.
 > Brand: **XboxSupport**. See [Build progress](#build-progress).
 
@@ -128,12 +128,12 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 - [x] Phase 3a: intent taxonomy frozen ([`data/codebook.md`](data/codebook.md), [`results/taxonomy/proposal.md`](results/taxonomy/proposal.md))
 - [x] Phase 3b: escalation policy calibrated on the dev set and frozen ([`results/escalation/dev_calibration.md`](results/escalation/dev_calibration.md))
 - [x] Phase 4: typed contracts (`src/contracts/`: enums pinned to the frozen codebook, pydantic models, `finalize()`)
-- [ ] Phase 5: dev + golden labelling (dev done; golden sampled, awaiting human labels)
+- [x] Phase 5: dev + golden labelling (200 items, human-first, hash-locked, adjudicated)
 - [x] Phase 6: non-LLM routing baselines ([`results/eval/routing_baselines.md`](results/eval/routing_baselines.md)); the ~2k weak-label pass is deferred until the agent shows it is needed
-- [ ] Phase 7: core business logic
+- [x] Phase 7: routing agent ([`results/eval/ab_routing_models.md`](results/eval/ab_routing_models.md), dev-only model A/B and threshold calibration)
 - [ ] Phase 8: LangGraph orchestration
-- [ ] Phase 9: evaluation harness + LLM judge + human agreement
-- [ ] Phase 10: failure analysis
+- [x] Phase 9: golden routing evaluation ([`results/eval/routing_baselines.md`](results/eval/routing_baselines.md), [`results/eval/routing_failures.md`](results/eval/routing_failures.md))
+- [x] Phase 10: retrieval, drafting, validation, revise-or-escalate
 - [ ] Phase 11: report, reproducibility, submission
 - [ ] Phase 12: optional integrations (stretch)
 

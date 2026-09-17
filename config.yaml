@@ -51,6 +51,13 @@ data:
 
 retrieval:
   k: 5
+  # Corpus embeddings, built by scripts/build_embeddings.py over the train-only
+  # grounding corpus. Committed so retrieval runs without downloading the model.
+  embeddings: data/processed/corpus_embeddings.npy
+
+drafting:
+  max_reply_chars: 280        # a reply is a tweet
+  max_attempts: 2             # one draft, then at most one revise (Phase 10)
 
 thresholds:               # chosen on dev only (Phase 7); never tuned on golden
   # 0.0 disables policy rule (h). The router reports only 0.90/0.95 on dev and all 7 of its errors

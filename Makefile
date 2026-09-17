@@ -16,5 +16,8 @@ data:       ## download the raw Kaggle dataset into data/raw/ (needs Kaggle cred
 sample:     ## Phase 2: data/processed/records.parquet + results/phase2_*.md (needs data/raw/twcs.csv)
 	uv run python -m src.dataprep.build
 
-taxonomy index eval report:
+taxonomy eval report:
 	@echo "'$@' is implemented in a later phase" && exit 1
+
+index:
+	uv run python scripts/build_embeddings.py
