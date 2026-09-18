@@ -619,3 +619,25 @@ comes from. It will be trimmed to the best 10–15 for submission.
   committed. The guarantee itself always held via an inline assertion, and that assertion is now
   pinned by six tests, including one checking that `golden_sample_key.csv` covers every row of the
   locked sheet — the disjointness check is only as good as the id list it compares against.
+- **[P8][audit H5] LangGraph orchestrates; it decides nothing.** `src/orchestration/graph.py` is a
+  straight line — `START -> route -> respond -> finalize -> END` — where each node is a two-line
+  pass-through to a function in `src/core` that was already tested on its own. Classification, cue
+  extraction, the escalation policy, retrieval, drafting and validation all stay where they were.
+  - **There are no conditional edges, deliberately.** The obvious place to put a branch would be
+    "skip drafting when the case escalates", but that is already core behaviour: `respond()` returns
+    an escalated state untouched. Encoding it as a graph edge would have duplicated a policy
+    decision in two places, which is exactly how the graph layer starts accumulating logic.
+  - Dependencies (LLM, retriever, thresholds) are injected by closure, so graph state stays pure
+    data and one compiled graph serves many requests.
+  - **Equivalence is pinned by test, not by assertion.** `tests/test_graph.py` runs the graph and
+    the hand-composed `route -> respond -> finalize` over the same fixtures and compares the full
+    `AgentOutput` minus wall-clock latency, across three paths: an auto-handled reply, a policy
+    handoff, and a validation-forced handoff. Two further tests assert the module imports no policy
+    module and contains no `ReasonCode`/`RiskLevel`/conditional-edge reference, so the layer cannot
+    quietly acquire behaviour later.
+  - **Phase 9 was not re-run and did not move.** All eight `results/eval/predictions/*.jsonl` files
+    are byte-identical to the previous commit, `agent.jsonl` included. Adding orchestration cannot
+    change results it does not sit on: the evaluation path calls `route()` and `finalize()`
+    directly, and still does.
+  - This closes the audit's H5, where the README described a LangGraph workflow that did not exist
+    and `langgraph` was a declared dependency nothing imported.

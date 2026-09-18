@@ -5,7 +5,8 @@ classifies each customer tweet's intent, drafts a reply grounded in how the bran
 before, and decides whether to auto-handle or escalate (with a reason). The repo also contains
 the evaluation harness that measures how far the agent can be trusted.
 
-> **Status:** Phases 0–10 complete (Phase 8 orchestration and Phase 11 judge outstanding). Taxonomy **frozen** (11 intents, 4 conversation states) and
+> **Status:** Phases 0–10 complete, including LangGraph orchestration. The Phase 11 judge is
+> probed and its rubric drafted; human calibration is in progress. Taxonomy **frozen** (11 intents, 4 conversation states) and
 > escalation policy **frozen** after calibration on the 40-item dev set. Golden set labelled by hand and locked.
 > Brand: **XboxSupport**. See [Build progress](#build-progress).
 
@@ -110,7 +111,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 |---|---|
 | `src/contracts/` | Typed data contracts shared by every module |
 | `src/core/` | Framework-free business logic (classify, retrieve, draft, escalate) |
-| `src/orchestration/` | LangGraph workflow wrapping `src/core` |
+| `src/orchestration/` | LangGraph workflow wrapping `src/core` — orchestration only, no policy |
 | `src/llm/` | Provider-agnostic LLM client with caching |
 | `src/ports/` | Interfaces + local defaults + dependency factory |
 | `src/integrations/` | Optional Postgres / Redis / Slack adapters (never used by eval) |
@@ -135,7 +136,7 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
 - [x] Phase 5: dev + golden labelling (200 items, human-first, hash-locked, adjudicated)
 - [x] Phase 6: non-LLM routing baselines ([`results/eval/routing_baselines.md`](results/eval/routing_baselines.md)); the ~2k weak-label pass is deferred until the agent shows it is needed
 - [x] Phase 7: routing agent ([`results/eval/ab_routing_models.md`](results/eval/ab_routing_models.md), dev-only model A/B and threshold calibration)
-- [ ] Phase 8: LangGraph orchestration
+- [x] Phase 8: LangGraph orchestration (`src/orchestration/graph.py`: three pass-through nodes, no business logic; equivalence to direct core composition is pinned by `tests/test_graph.py`)
 - [x] Phase 9: golden routing evaluation ([`results/eval/routing_baselines.md`](results/eval/routing_baselines.md), [`results/eval/routing_failures.md`](results/eval/routing_failures.md))
 - [x] Phase 10: retrieval, drafting, validation, revise-or-escalate
 - [ ] Phase 11: report, reproducibility, submission
