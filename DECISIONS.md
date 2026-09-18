@@ -496,3 +496,52 @@ comes from. It will be trimmed to the best 10–15 for submission.
     after failing validation. Every routing and escalation decision is unchanged, D25 still escalates
     with `REPLY_FAILED_CHECKS`, and the rerun cost 5,440 tokens against the original 15,517 because
     only the revised drafts needed live calls.
+- **[P11] The judge is a different model from the agent, and the code refuses to let that slip.**
+  Production router **and** drafter: `groq/qwen/qwen3.8-27b`. Response-quality judge:
+  `groq/openai/gpt-oss-120b`. A different family, but **the same vendor**, so the separation is
+  weaker than cross-vendor would be and the report must say so. `src/ports/factory.py:45-46` warns
+  when the two names match, and both Phase 11 scripts exit rather than let a model grade its own
+  replies. Note `gpt-oss-120b` was the *rejected* candidate in the Phase 7 router A/B, so it never
+  produced a label that fed any evaluation reference — judging here does not grade it against its
+  own earlier work.
+- **[P11] Five scored dimensions, two unscored flags.** Agreement is measured only on
+  groundedness, helpfulness, tone/brand voice, safety and conciseness (1-5, `PLAN.md:523`). The
+  judge also emits `unsupported_claims` and `escalation_appropriate` as **diagnostic flags that
+  never enter kappa**. With 15 calibration items, scoring eight dimensions would have produced
+  several kappas too thin to interpret; the flags keep the diagnostic value without pretending the
+  extra numbers are measurements.
+- **[P11] Human-first, and the lock is what makes it true.** The project owner rates every reply
+  before the judge runs; `scripts/run_judge_calibration.py` refuses to start unless
+  `dev_human_judgments.csv` matches its SHA-256 lock, and re-checks the digest afterwards. The judge
+  is never handed the human file — it sees only the message, the evidence, the draft and the
+  historical reference. This is the same guard `golden.lock` applies to the second-opinion pass.
+- **[P11] Reference-guided, with the anchoring risk measured rather than assumed.** The judge sees
+  the brand's real reply labelled explicitly as a reference and *not* the correct answer
+  (`PLAN.md:524`), and is told it is often a canned deflection. Because 52% of held-out DM
+  deflections reuse a train template ([P2]), every agreement figure is also reported sliced by
+  `reply_template_in_train` (5 of the 15 drafted dev items are True), so anchoring toward canned
+  replies would show up rather than hide.
+- **[P11] Rubric refinement is capped at one clarification pass, deliberately.** Iterating a rubric
+  until agreement improves would fit it to one rater's 15 judgements, and the resulting kappa would
+  measure the tuning rather than the judge. So: at most one revision, triggered only by **named
+  ambiguity in the rubric wording**, never by a low kappa; both versions' agreement published; then
+  `judge_v1` frozen and **never altered in response to the golden evaluation**.
+- **[P11] Probe before trusting it.** `scripts/probe_judge.py` graded 5 real drafted replies:
+  5/5 succeeded, **0 failures, 0 schema repairs**, every score inside 1-5, ids mapping back
+  correctly, ~1,833 tokens per call. The full 15-item run therefore extrapolates to roughly 27.5k
+  tokens — comfortably inside the free tier's 200k/day. The extrapolation is the useful output, not
+  the probe's success: per-minute rate-limit headers read healthy even when the daily budget is
+  exhausted ([P7]), so a small probe succeeding proves little about a full run.
+- **[P11] Limits to state in the report, not smooth over.** n=15 gives wide kappa intervals, and a
+  dimension where either side never varied has no defined kappa at all — reported as `–`, which is
+  a finding about the rubric rather than a gap. The 15 are **not a sample of dev**: they are exactly
+  the cases the policy auto-handles, so the escalation-heavy targeted strata contribute almost
+  nothing. And there is a single rater, who also wrote the codebook and the escalation policy.
+- **[P11] Two defects found while building this.** (a) `results/eval/dev_drafts.md` truncates each
+  draft to 150 characters and no file held the full reply, so the drafts could not feed a judge or a
+  rater; `scripts/draft_dev_replies.py` now also writes `results/eval/dev_drafts.jsonl`, regenerated
+  offline from cache for **0 tokens**. (b) The shared `parse_wait` regex `[0-9hms.]+` greedily
+  swallows a sentence's full stop, so "try again in 11m17.376s." left a bare "." that `float()`
+  rejects; `src/eval/quota.py` strips it. The same regex sits in `warm_agent_cache.py` and
+  `draft_dev_replies.py`, whose logs show they parsed real waits fine — the live message evidently
+  lacks that trailing stop — but the latent bug is recorded here rather than left as folklore.

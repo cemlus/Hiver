@@ -12,7 +12,12 @@ them.
 
 Writes:
   results/eval/dev_drafts.md            one row per item: decision, draft, validation result
+  results/eval/dev_drafts.jsonl         the FULL reply text and evidence ids, one JSON per line
   results/eval/dev_drafts_run.json      run manifest + quota stages
+
+The markdown truncates each draft to 150 characters for readability, so it cannot feed a judge or a
+human rater. The JSONL is the machine-readable copy: full reply, retrieved ids, and the reference
+reply and slice columns a reply-quality pass needs.
 """
 from __future__ import annotations
 
@@ -59,6 +64,13 @@ def parse_wait(message: str) -> float | None:
         elif char == "s":
             total, number = total + float(number or 0), ""
     return total + float(number or 0)
+
+
+def pool_row(dev_id: str):
+    """The holdout record behind one dev item: reference reply and the quality slice columns."""
+    sheet = pd.read_csv(DEV, dtype=str, keep_default_na=False).set_index("dev_id")
+    pool = eval_pool().assign(record_id=lambda d: d["record_id"].astype(str)).set_index("record_id")
+    return pool.loc[str(sheet.at[dev_id, "record_id"])]
 
 
 def dev_requests() -> list[SupportRequest]:
@@ -132,7 +144,12 @@ def main() -> None:
         session["escalated"] += int(escalated and not failed)
         session["failed_validation"] += int(failed)
         session["drafted"] += int(bool(state.draft))
+        record = pool_row(request.request_id)
         rows.append({"id": request.request_id, "message": request.customer_text,
+                     "reference_reply": str(record.get("brand_reply_clean", "") or ""),
+                     "reply_template_in_train": bool(record.get("reply_template_in_train", False)),
+                     "reply_type": str(record.get("reply_type", "") or ""),
+                     "retrieved_ids": [e.record_id for e in state.retrieved],
                      "state": state.classification.conversation_state.value,
                      "intent": state.classification.intent.value if state.classification.intent else "",
                      "escalate": "yes" if escalated else "no",
@@ -163,6 +180,9 @@ def main() -> None:
         lines.append(f"| {r['id']} | {r['escalate']} | `{r['reason']}` | {r['retrieved']} | "
                      f"{r['attempts']} | {draft} | {bad} |")
     (OUT / "dev_drafts.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    with (OUT / "dev_drafts.jsonl").open("w", encoding="utf-8") as fh:
+        for r in rows:
+            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
     (OUT / "dev_drafts_run.json").write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
     print(f"\nwrote {(OUT / 'dev_drafts.md').relative_to(ROOT)}: {session['drafted']} drafted, "
           f"{session['escalated']} escalated, {session['failed_validation']} failed validation, "
