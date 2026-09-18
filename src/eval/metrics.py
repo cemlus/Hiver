@@ -14,6 +14,13 @@ from src.contracts import AgentOutput, ConversationState, GoldenExample, Intent,
 from src.core.escalate import cue_blind_risk
 
 INTENT_BEARING = (ConversationState.NEW_ISSUE, ConversationState.ISSUE_FOLLOWUP)
+MACRO_F1_DENOMINATOR_NOTE = (
+    "Macro-F1 averages over the classes present in the evaluated sample. A class absent from both "
+    "gold and prediction is skipped rather than scored zero, so under bootstrap a resample that "
+    "loses a rare class averages over fewer classes. Rare classes score poorly, so those draws are "
+    "optimistic and the interval is slightly narrow at the lower end. The point estimate is "
+    "unaffected -- every gold class is present in the full set."
+)
 MUST_ESCALATE_LIMITATION = (
     "must_escalate_recall_cue_blind is a PROXY, not the metric originally specified. The locked "
     "golden sheet carries no cue, risk or reason columns, so risk is derived by running the frozen "
@@ -47,18 +54,27 @@ class RoutingResult:
     confusion_intent: dict[str, dict[str, int]] = field(default_factory=dict)
 
 
-def _macro_f1(truth: np.ndarray, pred: np.ndarray, labels: tuple[str, ...]) -> float:
+def _macro_f1(truth: np.ndarray, pred: np.ndarray, labels: tuple[str, ...]) -> tuple[float, int]:
+    """Macro-F1 and the number of classes it actually averaged over.
+
+    A class absent from BOTH gold and prediction carries no information -- precision and recall are
+    each 0/0 -- so it is skipped rather than scored zero. That is correct for a single evaluation,
+    where every gold class is present. Under bootstrap it matters: a rare class can vanish from a
+    resample, shrinking the denominator. Rare classes score poorly, so dropping them makes such
+    draws optimistic. The count is returned so `evaluate()` can measure how often it happens instead
+    of leaving the reader to assume a fixed denominator.
+    """
     scores = []
     for label in labels:
         tp = int(np.sum((truth == label) & (pred == label)))
         fp = int(np.sum((truth != label) & (pred == label)))
         fn = int(np.sum((truth == label) & (pred != label)))
         if tp + fn == 0 and tp + fp == 0:
-            continue                      # class absent from both: it would only dilute the mean
+            continue                      # no information about this class in this sample
         precision = tp / (tp + fp) if tp + fp else 0.0
         recall = tp / (tp + fn) if tp + fn else 0.0
         scores.append(2 * precision * recall / (precision + recall) if precision + recall else 0.0)
-    return float(np.mean(scores)) if scores else float("nan")
+    return (float(np.mean(scores)) if scores else float("nan")), len(scores)
 
 
 def _prf(truth: np.ndarray, pred: np.ndarray, label: str) -> tuple[float, float, float, int]:
@@ -98,11 +114,15 @@ class _Arrays:
         states = tuple(s.value for s in ConversationState)
         intents = tuple(i.value for i in Intent)
 
+        state_f1, state_classes = _macro_f1(gs, ps, states)
         out = {"state_accuracy": float(np.mean(gs == ps)) if len(idx) else float("nan"),
-               "state_macro_f1": _macro_f1(gs, ps, states)}
+               "state_macro_f1": state_f1,
+               "state_macro_f1_classes": float(state_classes)}
         # Intent is scored only where the gold state carries one; a missing prediction is an error.
-        out["intent_macro_f1"] = (_macro_f1(gi[bearing], pi[bearing], intents) if bearing.any()
-                                  else float("nan"))
+        intent_f1, intent_classes = (_macro_f1(gi[bearing], pi[bearing], intents) if bearing.any()
+                                     else (float("nan"), 0))
+        out["intent_macro_f1"] = intent_f1
+        out["intent_macro_f1_classes"] = float(intent_classes)
         out["intent_accuracy"] = (float(np.mean(gi[bearing] == pi[bearing])) if bearing.any()
                                   else float("nan"))
         tp = int(np.sum(ge & pe))
@@ -135,13 +155,31 @@ def evaluate(gold: list[GoldenExample], pred: list[AgentOutput], system: str = "
                 "escalation_precision": int(arrays.pred_esc.sum()),
                 "escalation_recall": int(arrays.gold_esc.sum()),
                 "must_escalate_recall_cue_blind": int(arrays.must_escalate.sum())}
+    # How often the bootstrap averaged over fewer classes than the point estimate did. Reported
+    # rather than silently absorbed into the interval.
+    denominator_notes = {}
+    for metric_key in ("state_macro_f1", "intent_macro_f1"):
+        count_key = f"{metric_key}_classes"
+        full = point.get(count_key, 0.0)
+        draws = np.array(samples.get(count_key, []), dtype=float)
+        draws = draws[~np.isnan(draws)]
+        unstable = float(np.mean(draws < full) * 100) if len(draws) and full else 0.0
+        denominator_notes[metric_key] = (
+            f"{MACRO_F1_DENOMINATOR_NOTE} Here: {int(full)} classes at the point estimate; "
+            f"{unstable:.1f}% of bootstrap draws averaged over fewer.")
+
     metrics = {}
     for key, value in point.items():
         draws = np.array(samples[key], dtype=float)
         draws = draws[~np.isnan(draws)]
         lo, hi = (np.percentile(draws, [2.5, 97.5]) if len(draws) else (float("nan"),) * 2)
+        note = MUST_ESCALATE_LIMITATION if key.startswith("must_escalate") else ""
+        note = denominator_notes.get(key, note)
         metrics[key] = Metric(value=value, lo=float(lo), hi=float(hi), support=supports.get(key, n),
-                              note=MUST_ESCALATE_LIMITATION if key.startswith("must_escalate") else "")
+                              note=note)
+    # Diagnostics, not reported metrics: they exist so the notes above can be computed.
+    for count_key in ("state_macro_f1_classes", "intent_macro_f1_classes"):
+        metrics.pop(count_key, None)
 
     per_intent = {}
     bearing = arrays.intent_bearing

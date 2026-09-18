@@ -672,3 +672,49 @@ comes from. It will be trimmed to the best 10–15 for submission.
   where G156 is an intent error on an always-escalate intent (the intent error *caused* the miss)
   while G122's gold intent alone would not escalate, making it a cue-detection miss. Treating those
   as one number would have hidden that intent errors on rule-(b) intents are a distinct safety risk.
+- **[P11][audit M3] The macro-F1 bootstrap denominator is now stated rather than assumed.**
+  `_macro_f1` skips a class absent from **both** gold and prediction, because precision and recall
+  are each 0/0 there and scoring it zero would punish a system for a class nobody observed. That is
+  right for a single evaluation — every gold class is present — but under bootstrap a rare class
+  (n=4) vanishes from ~2% of resamples, shrinking the denominator from 11 to 10. Rare classes score
+  poorly, so those draws are **optimistic** and the interval is slightly narrow at the bottom.
+  - Rather than invent a value for an unobserved class, `_macro_f1` now returns the number of
+    classes it averaged over, and `evaluate()` measures how often the bootstrap denominator was
+    smaller than the point estimate's, attaching the rate to the metric's note.
+  - **The point estimate and the intervals are byte-identical after the change** — verified by
+    re-running the offline evaluation and diffing every metric row against the committed report.
+    The fix adds disclosure, not a different number.
+  - The class-count diagnostics are popped before the metrics are returned, so no report column
+    changes.
+- **[P11][audit M4] "Was anything retrieved?" is not a grounding check.** The old rule fired only
+  when retrieval returned nothing, so with k=5 almost always returning something, *any*
+  troubleshooting passed regardless of whether the evidence supported it. It caught D25 only because
+  retrieval happened to return zero results.
+  - The validator now extracts the canonical troubleshooting actions a draft proposes and requires
+    at least one to appear in the conversation **or** the retrieved evidence. Partial support is
+    deliberately tolerated: the grounding rule the project owner set allows synthesis across several
+    retrieved examples, so only a reply whose every proposed step is unsupported is rejected.
+- **[P11][audit M5] A DM deflection could hide behind the word "check".** The old rule accepted any
+  reply matching a broad guidance regex, and that regex matched `check` — so "please DM us and check
+  your messages" counted as offering help. The DM clause and "check your DMs/messages/inbox" are now
+  stripped first, and the remainder must still contain a real step.
+  - M4 and M5 share one canonical `STEP_PHRASES` vocabulary, which excludes weak verbs like `check`.
+    Three checks (already-tried steps, step support, DM substance) now read from the same list
+    instead of three overlapping regexes drifting apart.
+  - **Verified against the drafts already in flight: 0 of the 15 committed dev drafts fail the
+    stricter validator**, so the human rating sheet being filled in right now is unaffected and no
+    draft needed regenerating.
+  - One existing test failed on the stricter rule, and its failure was *evidence the fix works*:
+    it drafted "recalibrate the controller" against evidence that said only "follow the guide here",
+    and passed before only because the old rule was vacuous. The fixture was corrected to supply
+    supporting evidence; the rule was not relaxed.
+- **[P11][audit M6] A cache replay no longer erases what the live run cost.** `dev_drafts_run.json`
+  was a single dict, so re-running with `LLM_OFFLINE=1` — which reports 0 tokens because it makes no
+  request — overwrote the record of the live run that produced the drafts. The manifest now
+  accumulates `runs[]`, legacy single-dict files migrate into `runs[0]` idempotently, and each run
+  records `live_calls` and `offline_replay` so a reader can tell a genuine 0-token replay from a
+  cheap live run.
+  - The write was extracted into `append_run()` specifically so it could be tested without an LLM;
+    six tests cover replay-after-live, legacy migration, idempotency, a missing file, and replay
+    distinguishability. The already-committed manifest is left as it is: the code migrates it on the
+    next write, and hand-editing a results artifact to look tidier is the wrong instinct.

@@ -76,3 +76,33 @@ def test_per_intent_table_reports_support(fixture):
     per_intent = evaluate(g, p, "test", n_boot=200).per_intent
     assert per_intent["hardware_devices"]["support"] == 2
     assert per_intent["purchases_billing_orders"]["f1"] == pytest.approx(1.0)
+
+
+def test_macro_f1_reports_how_often_the_bootstrap_denominator_shrank(fixture):
+    """M3: a resample can lose a rare class, so the interval is not over a fixed denominator."""
+    g, p = fixture
+    result = evaluate(g, p, "test", n_boot=500)
+    for key in ("state_macro_f1", "intent_macro_f1"):
+        note = result.metrics[key].note
+        assert "classes at the point estimate" in note, key
+        assert "% of bootstrap draws averaged over fewer" in note, key
+
+
+def test_the_class_count_diagnostics_are_not_reported_as_metrics(fixture):
+    """They exist to compute the note; they must not leak into the results table."""
+    g, p = fixture
+    result = evaluate(g, p, "test", n_boot=200)
+    assert "intent_macro_f1_classes" not in result.metrics
+    assert "state_macro_f1_classes" not in result.metrics
+
+
+def test_macro_f1_skips_a_class_absent_from_both_rather_than_scoring_it_zero(fixture):
+    """Scoring an unobserved class 0 would punish a system for a class nobody saw."""
+    from src.eval.metrics import _macro_f1
+    import numpy as np
+
+    truth = np.array(["a", "a", "b"])
+    pred = np.array(["a", "b", "b"])
+    score, classes = _macro_f1(truth, pred, ("a", "b", "c"))
+    assert classes == 2, "class c is absent from both and must be skipped, not scored"
+    assert 0.0 < score <= 1.0

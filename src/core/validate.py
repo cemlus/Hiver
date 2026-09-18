@@ -27,9 +27,20 @@ GUIDANCE_RE = re.compile(
 TRIED_RE = re.compile(
     r"\b(?:tried|already\s+(?:tried|did|done)|i(?:'ve|\s+have)\s+(?:tried|done)|didn'?t\s+work|"
     r"doesn'?t\s+work|no\s+luck|still\s+(?:not|doesn'?t|won'?t))\b", re.I)
-STEP_WORDS = ("restart", "reboot", "reinstall", "re-install", "unplug", "power cycle", "powercycle",
-              "hard reset", "factory reset", "update", "sign out", "sign in", "log out", "log in",
-              "clear cache", "reset")
+#: Canonical troubleshooting actions. One vocabulary serves three checks: which steps the customer
+#: already tried, whether a drafted step is supported by the evidence, and whether a reply that asks
+#: for a DM also offers real help. Deliberately excludes weak verbs like "check", which is why
+#: "please DM us and check your messages" no longer counts as guidance.
+STEP_PHRASES = ("restart", "reboot", "reinstall", "re-install", "unplug", "power cycle", "powercycle",
+                "hard reset", "factory reset", "update", "sign out", "sign in", "log out", "log in",
+                "clear cache", "reset", "power button", "disconnect", "reconnect", "recalibrat")
+STEP_WORDS = STEP_PHRASES          # retained name for the already-tried check
+
+#: A DM request and its immediate object, stripped before asking whether any real help remains.
+DM_CLAUSE_RE = re.compile(
+    r"\b(?:please\s+)?(?:send\s+us\s+a\s+|shoot\s+us\s+a\s+)?"
+    r"(?:dm|direct message|private message|pm)\s*(?:us|me)?\b[^.!?]*", re.I)
+CONTACT_ONLY_RE = re.compile(r"\bcheck\s+your\s+(?:dms?|messages|inbox)\b", re.I)
 
 
 def _evidence(request: SupportRequest, retrieved: tuple[RetrievedExample, ...]) -> str:
@@ -44,13 +55,19 @@ def _normalise(url: str) -> str:
     return url.rstrip(".,);:!?").lower().removeprefix("https://").removeprefix("http://").removeprefix("www.")
 
 
+def steps_mentioned(text: str) -> set[str]:
+    """Which canonical troubleshooting actions a piece of text refers to."""
+    lowered = (text or "").lower()
+    return {phrase for phrase in STEP_PHRASES if phrase in lowered}
+
+
 def tried_steps(request: SupportRequest) -> set[str]:
     """Steps the customer says they already attempted, so the reply does not repeat them."""
     said = " ".join([request.customer_text, *(t.text for t in request.context
                                               if t.role == "customer")]).lower()
     if not TRIED_RE.search(said):
         return set()
-    return {word for word in STEP_WORDS if word in said}
+    return steps_mentioned(said)
 
 
 def validate(draft: str, request: SupportRequest, retrieved: tuple[RetrievedExample, ...] = (), *,
@@ -80,20 +97,31 @@ def validate(draft: str, request: SupportRequest, retrieved: tuple[RetrievedExam
             errors.append(f"unsupported amount: {amount} is not in the conversation or the evidence")
 
     # A DM ask is legitimate alongside real help; a bare deflection is the canned template the
-    # held-out data is full of, and it never counts as a grounded answer ([P2]).
-    if DM_RE.search(text) and not GUIDANCE_RE.search(text):
-        errors.append("DM deflection: the reply asks the customer to get in touch without offering "
-                      "any guidance")
+    # held-out data is full of, and it never counts as a grounded answer ([P2]). The DM clause and
+    # "check your messages" are stripped first, so asking someone to look at their inbox cannot
+    # masquerade as troubleshooting -- the old check accepted it because GUIDANCE_RE matched "check".
+    if DM_RE.search(text):
+        remainder = DM_CLAUSE_RE.sub(" ", CONTACT_ONLY_RE.sub(" ", text))
+        if not steps_mentioned(remainder):
+            errors.append("DM deflection: the reply asks the customer to get in touch without "
+                          "offering any concrete step")
 
     repeated = sorted(step for step in tried_steps(request) if step in text.lower())
     if repeated:
         errors.append("repeats steps the customer already reported trying: " + ", ".join(repeated))
 
-    if not retrieved and GUIDANCE_RE.search(text):
-        errors.append("unsupported troubleshooting: the reply gives steps but no evidence was "
-                      "retrieved to support them")
+    # Whether the steps are actually supported, not merely whether retrieval returned something.
+    # Partial support is tolerated: the grounding rule allows synthesis across examples, so only a
+    # reply whose every proposed step is absent from the conversation AND the evidence is rejected.
+    drafted_steps = steps_mentioned(text)
+    if drafted_steps:
+        supported = drafted_steps & steps_mentioned(evidence)
+        if not supported:
+            errors.append("unsupported troubleshooting: none of the steps it proposes ("
+                          + ", ".join(sorted(drafted_steps))
+                          + ") appear in the conversation or the retrieved evidence")
 
     return tuple(errors)
 
 
-__all__ = ["validate", "tried_steps"]
+__all__ = ["validate", "tried_steps", "steps_mentioned", "STEP_PHRASES"]
