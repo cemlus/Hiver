@@ -59,7 +59,10 @@ def run_agent(examples: list[GoldenExample], llm: LLMClient, *, confidence_thres
         else:
             run.failures.append((example.request.request_id,
                                  f"{type(last_error).__name__}: {str(last_error)[:400]}"))
-        if sleep:
+        # Pace LIVE calls only. A cached replay makes no request, so sleeping through it would
+        # turn an offline reproduction of 200 items into hours of idling. Same gate as
+        # warm_agent_cache.py and draft_dev_replies.py.
+        if sleep and getattr(llm, "last_usage", None):
             time.sleep(sleep)
     run.schema_retries = getattr(llm, "schema_retries", 0) - retries_before
     return run

@@ -16,8 +16,11 @@ data:       ## download the raw Kaggle dataset into data/raw/ (needs Kaggle cred
 sample:     ## Phase 2: data/processed/records.parquet + results/phase2_*.md (needs data/raw/twcs.csv)
 	uv run python -m src.dataprep.build
 
-taxonomy eval report:
+taxonomy report:
 	@echo "'$@' is implemented in a later phase" && exit 1
 
 index:
 	uv run python scripts/build_embeddings.py
+
+eval:       ## reproduce the headline routing table from the committed cache (no API key)
+	LLM_OFFLINE=1 uv run python scripts/run_routing_eval.py

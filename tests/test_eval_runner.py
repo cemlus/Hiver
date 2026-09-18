@@ -104,3 +104,35 @@ def test_the_committed_predictions_are_full_length():
 def test_the_report_name_depends_on_the_limit(limit, expected):
     name = f"routing_baselines_smoke{limit}.md" if limit else "routing_baselines.md"
     assert name == expected
+
+
+def test_the_runner_does_not_sleep_through_cached_replays():
+    """A cached replay makes no request; pacing it would make offline reproduction take hours.
+
+    The runner inherits --sleep 32, so an ungated sleep turned a 200-item offline replay into
+    ~1.8 hours of idling and made the documented "<15 minute" reproduction claim false.
+    """
+    import time as _time
+
+    from src.contracts import GoldenExample, SupportRequest
+    from src.core.classify import RoutingProposal
+    from src.eval.agent_runner import run_agent
+
+    class CachedLLM:
+        model = "fake/model"
+        last_usage = None                      # None == served from cache
+
+        def complete(self, prompt, *, system=None, schema=None):
+            return RoutingProposal(conversation_state="new_issue", intent="hardware_devices",
+                                   confidence=0.95, rationale="t")
+
+    examples = [GoldenExample(request=SupportRequest(request_id=f"G{i}", brand="XboxSupport",
+                                                     customer_text="my controller drifts"),
+                              label_conversation_state="new_issue",
+                              label_intent="hardware_devices")
+                for i in range(3)]
+    started = _time.time()
+    run = run_agent(examples, CachedLLM(), confidence_threshold=0.0, sleep=2.0)
+    elapsed = _time.time() - started
+    assert len(run.outputs) == 3
+    assert elapsed < 1.0, f"slept through cached replays: {elapsed:.1f}s for 3 cached items"

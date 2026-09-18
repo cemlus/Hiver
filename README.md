@@ -32,6 +32,45 @@ Then put that provider's key in `.env`. No code changes are needed.
 Every LLM call is cached in `data/cache/llm_cache.sqlite` (committed). With `LLM_OFFLINE=1`,
 runs use only that cache, so results reproduce without an API key.
 
+## Reproducing the headline numbers
+
+Two very different things get called "reproduction". Both are stated here because only one of them
+is fast.
+
+**1. From the committed artifacts — measured at ~85 seconds, no API key.**
+
+```bash
+uv sync --locked     # install pinned deps (cold install dominates; see the caveat below)
+make eval            # LLM_OFFLINE=1 uv run python scripts/run_routing_eval.py
+uv run pytest -q     # ~35 s, 216 tests, no network
+```
+
+`make eval` regenerates `results/eval/routing_baselines.md` from `data/cache/llm_cache.sqlite`
+(committed) and makes **zero live model calls** — the run manifest records `llm_calls: 0`. Every
+metric row comes back byte-identical to the committed report. This satisfies the "<15 minute"
+reproduction requirement **for the evaluation**, with one honest caveat: the timing above excludes a
+cold `uv sync`, which was not measured here because dependencies were already cached on this
+machine. It downloads CPU-only torch and sentence-transformers, so budget several minutes on a
+first run.
+
+A fresh clone pulls ~15 MB of git history, including the 424 KB LLM cache, the 4.0 MB corpus
+embeddings and the 7.6 MB processed records — so no data rebuild is needed to reproduce the table.
+
+**2. A genuinely fresh live rerun — three days, not fifteen minutes.**
+
+Re-classifying the 200 golden items against the real model cost **162 live calls and ~655,000
+tokens**, spread across **seven quota windows over three days** (85 rate-limit waits, ~25 hours
+spent waiting) on Groq's free tier. Rebuilding corpus embeddings adds ~4 minutes and a ~90 MB model
+download. Nothing about that path is fast; the committed cache exists precisely so a reviewer never
+has to walk it.
+
+```bash
+cp .env.example .env                              # add GROQ_API_KEY
+uv run python scripts/build_embeddings.py         # or: make index
+uv run python scripts/warm_agent_cache.py         # resumable; waits out each quota window
+uv run python scripts/run_routing_eval.py         # live, then as above
+```
+
 ## Data pipeline
 
 `uv run python -m src.dataprep.build` (or `make sample`) rebuilds the committed

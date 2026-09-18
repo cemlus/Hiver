@@ -641,3 +641,34 @@ comes from. It will be trimmed to the best 10–15 for submission.
     directly, and still does.
   - This closes the audit's H5, where the README described a LangGraph workflow that did not exist
     and `langgraph` was a declared dependency nothing imported.
+- **[P11][audit M2] The documented reproduction path would have taken 1.8 hours, not 85 seconds.**
+  `src/eval/agent_runner.py` slept after every item with `if sleep: time.sleep(sleep)` — no check
+  for whether a call was actually made. `run_routing_eval.py` defaults to `--sleep 32`, so the
+  natural command `LLM_OFFLINE=1 ... run_routing_eval.py` would have idled 32 s × 200 cached items.
+  Earlier timings looked fine only because I had been passing `--sleep 0` by hand.
+  - Fixed by gating on a live call (`if sleep and llm.last_usage`), the same gate
+    `warm_agent_cache.py` and `draft_dev_replies.py` already used. Pacing exists for the provider's
+    rate limit; a cache hit contacts no provider.
+  - Now measured rather than asserted: bare `make eval` finishes in **85 s**, records
+    `llm_calls: 0`, and reproduces every metric row byte-identically. A regression test fails if a
+    cached replay ever sleeps again.
+  - This is exactly the failure the audit named — publishing a claim nobody had executed. The
+    "<15 minute" requirement had been treated as satisfied for weeks while the documented command
+    would have missed it by an order of magnitude.
+- **[P11][audit M2] Reproduction is reported as two different things, because it is.** From the
+  committed cache: ~85 s, no API key, zero model calls. A genuinely fresh live rerun: 162 calls,
+  ~655k tokens, seven quota windows across three days, ~25 h of rate-limit waiting, plus a ~90 MB
+  embedding-model download. Quoting only the first number would be true and misleading; the README
+  and `REPORT.md` state both, and say which one the "<15 minute" requirement refers to.
+  - The cold `uv sync` is **not** measured: dependencies were already cached on this machine, so
+    the honest statement is "excludes a cold install, budget several minutes", not a fabricated
+    figure.
+  - `make eval` is now a real target (it previously printed "implemented in a later phase" and
+    exited 1), and `requirements.txt` is exported, both named deliverables that did not exist.
+- **[P11][audit M1] The top-five failure analysis is grounded in items, not counts.**
+  `results/eval/routing_failures.md` gave error counts and confusion matrices, which is not a
+  failure-mode analysis. `REPORT.md` now names five modes with example items and a proposed fix
+  each, and separates causes that the counts had merged — most usefully the two under-escalations,
+  where G156 is an intent error on an always-escalate intent (the intent error *caused* the miss)
+  while G122's gold intent alone would not escalate, making it a cue-detection miss. Treating those
+  as one number would have hidden that intent errors on rule-(b) intents are a distinct safety risk.
