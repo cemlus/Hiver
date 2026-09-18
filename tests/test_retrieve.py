@@ -90,3 +90,24 @@ def test_the_grounding_corpus_is_train_only_and_never_touches_dev_or_golden():
     assert (grounding["split"] == "train").all()
     assert (grounding["reply_type"] == "substantive").all()
     assert set(grounding["record_id"].astype(str)) & set(eval_pool()["record_id"].astype(str)) == set()
+
+
+@pytest.mark.skipif(not RECORDS.exists(), reason="processed records are not built")
+def test_examples_by_id_resolves_ids_to_non_empty_evidence():
+    """The judge resolves evidence from ids; every id must come back with real text."""
+    from src.core.retrieve import corpus, examples_by_id
+
+    ids = [str(r) for r in corpus()["record_id"].head(5)]
+    found = examples_by_id(ids)
+    assert [e.record_id for e in found] == ids
+    assert all(e.customer_text.strip() for e in found)
+    assert all(e.brand_reply.strip() for e in found)
+
+
+@pytest.mark.skipif(not RECORDS.exists(), reason="processed records are not built")
+def test_examples_by_id_refuses_an_id_outside_the_grounding_corpus():
+    """Silently dropping evidence is the failure mode this guards."""
+    from src.core.retrieve import examples_by_id
+
+    with pytest.raises(KeyError, match="not in the grounding corpus"):
+        examples_by_id(["definitely-not-a-record-id"])

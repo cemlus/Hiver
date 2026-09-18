@@ -2,3 +2,8 @@
 # working-tree file, and git's autocrlf would otherwise rewrite CRLF -> LF on commit, so a fresh
 # clone would produce a different file and fail tests/test_golden_integrity.py.
 data/golden/golden_labeling_sheet.csv -text
+
+# Same reasoning for every hand-filled label/rating sheet under data/golden/: each one is (or will
+# be) hashed into a .lock file, and autocrlf rewriting CRLF -> LF on commit would make a fresh
+# clone disagree with the lock. The glob covers dev_human_judgments.csv before it is locked.
+data/golden/*.csv -text

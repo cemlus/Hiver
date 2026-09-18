@@ -102,6 +102,32 @@ def retrieve(text: str, *, frame: pd.DataFrame, matrix: np.ndarray,
     return tuple(examples)
 
 
+@lru_cache(maxsize=1)
+def _by_record_id() -> dict[str, tuple[str, str]]:
+    """record_id -> (customer message, brand reply) over the train-only grounding corpus."""
+    return {str(row["record_id"]): (str(row[TEXT_COLUMN]), str(row[REPLY_COLUMN]))
+            for row in corpus().to_dict("records")}
+
+
+def examples_by_id(record_ids, *, similarity: float = 0.0) -> tuple[RetrievedExample, ...]:
+    """Rebuild retrieved examples from their ids, WITH their text.
+
+    Downstream consumers (the judge) only ever persist `retrieved_ids`, so the evidence has to be
+    resolved back from the corpus rather than carried around. A missing id raises: silently
+    dropping evidence is exactly the failure this function exists to prevent.
+    """
+    lookup = _by_record_id()
+    ids = [str(rid) for rid in record_ids]
+    missing = [rid for rid in ids if rid not in lookup]
+    if missing:
+        raise KeyError(f"{len(missing)} retrieved id(s) are not in the grounding corpus: "
+                       f"{missing[:3]}. The corpus is train-only; ids from elsewhere cannot be "
+                       "used as evidence.")
+    return tuple(RetrievedExample(record_id=rid, customer_text=lookup[rid][0],
+                                  brand_reply=lookup[rid][1], similarity=similarity)
+                 for rid in ids)
+
+
 def default_retriever(k: int | None = None, min_similarity: float | None = None
                       ) -> Callable[[str], tuple[RetrievedExample, ...]]:
     """The production retriever: real corpus, cached embeddings, real encoder."""
@@ -118,4 +144,4 @@ def default_retriever(k: int | None = None, min_similarity: float | None = None
     return run
 
 
-__all__ = ["retrieve", "default_retriever", "corpus", "load_embeddings", "encode", "unit"]
+__all__ = ["retrieve", "default_retriever", "examples_by_id", "corpus", "load_embeddings", "encode", "unit"]

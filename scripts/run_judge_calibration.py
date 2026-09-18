@@ -28,7 +28,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.config import load_config                                          # noqa: E402
-from src.contracts import RetrievedExample, SupportRequest                  # noqa: E402
+from src.contracts import SupportRequest                                    # noqa: E402
+from src.core.retrieve import examples_by_id                             # noqa: E402
 from src.eval.agreement import agreement_table, score_agreement             # noqa: E402
 from src.eval.judge import (DIMENSIONS, JUDGE_RUBRIC_VERSION, judge_reply)  # noqa: E402
 from src.eval.quota import classify                                         # noqa: E402
@@ -90,9 +91,8 @@ def run_judge(rows: list[dict], llm, sleep: float) -> tuple[list[dict], list[dic
         while True:
             started = time.time()
             try:
-                retrieved = tuple(RetrievedExample(record_id=str(rid), customer_text="",
-                                                   brand_reply="", similarity=0.0)
-                                  for rid in row.get("retrieved_ids", []))
+                # Resolved from the train-only grounding corpus, never fabricated empty.
+                retrieved = examples_by_id(row.get("retrieved_ids", []))
                 request = SupportRequest(request_id=row["id"], brand=load_config()["brand"],
                                          customer_text=row["message"])
                 result = judge_reply(request, row["draft"], retrieved, llm,

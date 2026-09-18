@@ -30,10 +30,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.config import load_config                                  # noqa: E402
-from src.contracts import RetrievedExample, SupportRequest, Turn     # noqa: E402
+from src.contracts import SupportRequest                             # noqa: E402
 from src.eval.judge import (DIMENSIONS, JUDGE_RUBRIC_VERSION, ReplyJudgement,  # noqa: E402
                             judge_reply, system_prompt)
-from src.eval.quota import classify                                  # noqa: E402
+from src.core.retrieve import examples_by_id                      # noqa: E402
+from src.eval.quota import PER_MINUTE, classify                                  # noqa: E402
 from src.ports.factory import build_deps                             # noqa: E402
 
 DRAFTS = ROOT / "results" / "eval" / "dev_drafts.jsonl"
@@ -87,6 +88,9 @@ def main() -> None:
     parser.add_argument("--n", type=int, default=5, help="how many replies to probe")
     parser.add_argument("--skip", type=int, default=0,
                         help="skip this many replies first, so a re-probe makes live calls")
+    parser.add_argument("--sleep", type=float, default=12.0,
+                        help="seconds between live calls; ~2.1k tokens each against an 8k/min "
+                             "ceiling means unspaced calls breach TPM deterministically")
     args = parser.parse_args()
 
     cfg = load_config()
@@ -103,11 +107,12 @@ def main() -> None:
     results, failures = [], []
     before_retries = getattr(llm, "schema_retries", 0)
     for row in rows:
+      while True:
         started = time.time()
         try:
-            retrieved = tuple(RetrievedExample(record_id=str(rid), customer_text="", brand_reply="",
-                                               similarity=0.0)
-                              for rid in row.get("retrieved_ids", []))
+            # Evidence text is resolved from the train-only corpus: dev_drafts.jsonl stores only
+            # ids, and an empty evidence block makes groundedness unscoreable.
+            retrieved = examples_by_id(row.get("retrieved_ids", []))
             judgement: ReplyJudgement = judge_reply(as_request(row), row["draft"], retrieved, llm,
                                                     reference=row.get("reference_reply", ""))
             usage = llm.last_usage or {}
@@ -124,12 +129,22 @@ def main() -> None:
                 "total_tokens": usage.get("total_tokens"),
                 "cached": llm.last_usage is None})
             print(f"  {row['id']}: {judgement.scores()} ({results[-1]['latency_s']}s)", flush=True)
+            if llm.last_usage:
+                time.sleep(args.sleep)
+            break
         except Exception as error:                                # noqa: BLE001
             message = str(error)[:400]
             limit = classify(message)
+            if limit and limit.kind == PER_MINUTE:
+                # Transient by definition: wait out the window the API named and retry the item.
+                print(f"  {row['id']}: per-minute limit; waiting "
+                      f"{limit.wait_seconds:.0f}s", flush=True)
+                time.sleep(limit.wait_seconds)
+                continue
             failures.append({"id": row["id"], "error": message,
                              "rate_limited": limit.kind if limit else None})
             print(f"  {row['id']} FAILED: {message[:140]}", flush=True)
+            break
 
     live = [r for r in results if r.get("total_tokens")]
     mean_tokens = (sum(r["total_tokens"] for r in live) / len(live)) if live else None
@@ -145,6 +160,7 @@ def main() -> None:
                          ("temperature", "max_tokens", "reasoning_effort", "timeout")},
         "system_prompt_chars": len(system_prompt()),
         "probed_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "sleep_seconds": args.sleep,
         "items_probed": len(rows),
         "probed_ids": [r["id"] for r in rows],
         "results": results,

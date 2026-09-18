@@ -12,8 +12,8 @@ from pydantic import ValidationError
 
 from src.config import load_config
 from src.contracts import RetrievedExample, SupportRequest
-from src.eval.judge import (DIMENSIONS, RUBRIC, ReplyJudgement, judge_reply, rubric_markdown,
-                            system_prompt, user_prompt)
+from src.eval.judge import (DIMENSIONS, RUBRIC, ReplyJudgement, judge_reply, require_evidence,
+                            rubric_markdown, system_prompt, user_prompt)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -75,12 +75,40 @@ def test_the_scores_come_back_keyed_by_dimension():
     assert result.scores() == {**{d: 4 for d in DIMENSIONS}, "safety": 5}
 
 
-def test_the_evidence_reaches_the_judge():
-    example = RetrievedExample(record_id="T7", customer_text="drift",
-                               brand_reply="Recalibrate.", similarity=0.9)
+def test_the_evidence_text_reaches_the_judge_not_just_the_id():
+    """Regression: the prompt once listed bare record ids with empty bodies under them."""
+    example = RetrievedExample(record_id="T7", customer_text="stick drift on my controller",
+                               brand_reply="Recalibrate it in Settings.", similarity=0.9)
     llm = FakeLLM(judgement())
     judge_reply(request(), "recalibrate it", (example,), llm)
-    assert "T7" in llm.calls[0]["prompt"]
+    prompt = llm.calls[0]["prompt"]
+    assert "T7" in prompt
+    assert "stick drift on my controller" in prompt
+    assert "Recalibrate it in Settings." in prompt
+
+
+def test_evidence_with_empty_bodies_is_refused():
+    """The judge must never be asked to score groundedness against an empty evidence block."""
+    blank = RetrievedExample(record_id="T7", customer_text="", brand_reply="", similarity=0.0)
+    with pytest.raises(ValueError, match="no evidence text"):
+        user_prompt(request(), "some reply", (blank,))
+    with pytest.raises(ValueError, match="no evidence text"):
+        judge_reply(request(), "some reply", (blank,), FakeLLM(judgement()))
+
+
+def test_require_evidence_allows_a_genuinely_empty_retrieval():
+    """Retrieving nothing is a real state; it is fabricated empty BODIES that are the bug."""
+    require_evidence(())
+    assert "(no evidence was retrieved for this case)" in user_prompt(request(), "hi", ())
+
+
+def test_the_calibration_scripts_do_not_fabricate_empty_evidence():
+    """A source-level guard to match the runtime one."""
+    for name in ("probe_judge.py", "run_judge_calibration.py"):
+        text = (ROOT / "scripts" / name).read_text(encoding="utf-8")
+        assert 'customer_text=""' not in text, f"{name} fabricates empty evidence bodies"
+        assert 'brand_reply=""' not in text, f"{name} fabricates empty evidence bodies"
+        assert "examples_by_id" in text, f"{name} must resolve evidence from the corpus"
 
 
 def test_the_human_rubric_matches_the_judge_rubric():

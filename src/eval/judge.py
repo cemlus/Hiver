@@ -134,6 +134,23 @@ class ReplyJudgement(BaseModel):
         return {name: getattr(self, name) for name in DIMENSIONS}
 
 
+def require_evidence(retrieved: tuple[RetrievedExample, ...]) -> None:
+    """Refuse to build a prompt whose evidence blocks are empty.
+
+    Both calibration scripts once constructed RetrievedExample(record_id=..., customer_text="",
+    brand_reply="") from the ids stored in dev_drafts.jsonl. The prompt then listed bare ids with
+    nothing under them, and the judge was asked to score groundedness against nothing -- which it
+    duly scored low. Failing loudly here is the only way that stays impossible.
+    """
+    blank = [e.record_id for e in retrieved
+             if not e.customer_text.strip() and not e.brand_reply.strip()]
+    if blank:
+        raise ValueError(
+            f"{len(blank)} retrieved example(s) carry no evidence text (e.g. {blank[:3]}). "
+            "Resolve ids through src.core.retrieve.examples_by_id() before judging; the judge "
+            "cannot assess groundedness against an empty evidence block.")
+
+
 def evidence_block(retrieved: tuple[RetrievedExample, ...]) -> str:
     if not retrieved:
         return "(no evidence was retrieved for this case)"
@@ -143,6 +160,7 @@ def evidence_block(retrieved: tuple[RetrievedExample, ...]) -> str:
 
 def user_prompt(request: SupportRequest, reply: str, retrieved: tuple[RetrievedExample, ...],
                 reference: str = "") -> str:
+    require_evidence(retrieved)
     turns = [f"{t.role}: {t.text}" for t in request.context]
     context = "\n".join(turns) if turns else "(no earlier turns)"
     reference_block = (f"{reference}\n\n(Reference only. NOT the correct answer, and often a canned "
@@ -163,5 +181,5 @@ def judge_reply(request: SupportRequest, reply: str, retrieved: tuple[RetrievedE
                         system=system_prompt(), schema=ReplyJudgement)
 
 
-__all__ = ["judge_reply", "ReplyJudgement", "system_prompt", "user_prompt", "rubric_markdown",
+__all__ = ["judge_reply", "ReplyJudgement", "system_prompt", "user_prompt", "rubric_markdown", "require_evidence",
            "DIMENSIONS", "RUBRIC", "JUDGE_RUBRIC_VERSION"]

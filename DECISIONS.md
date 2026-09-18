@@ -545,3 +545,40 @@ comes from. It will be trimmed to the best 10–15 for submission.
   rejects; `src/eval/quota.py` strips it. The same regex sits in `warm_agent_cache.py` and
   `draft_dev_replies.py`, whose logs show they parsed real waits fine — the live message evidently
   lacks that trailing stop — but the latent bug is recorded here rather than left as folklore.
+- **[P11][audit B1] The judge was scoring groundedness against an empty evidence block.**
+  `scripts/probe_judge.py` and `scripts/run_judge_calibration.py` both rebuilt evidence as
+  `RetrievedExample(record_id=..., customer_text="", brand_reply="")` from the ids in
+  `dev_drafts.jsonl`, which never stored the evidence text. The prompt therefore listed bare record
+  ids with nothing underneath, and the judge was asked to verify claims against nothing.
+  - **Why it stayed invisible.** Every call succeeded, the schema validated, ids mapped, and the
+    probe printed "5 ok". Nothing failed; the numbers were simply meaningless. It surfaced only in a
+    deliberate post-hoc audit.
+  - **The effect was arbitrary, not merely low** — the more dangerous failure. With empty evidence
+    the judge still awarded groundedness 5 to D04 and D06. Restoring real evidence moved D03 from
+    **2 to 5**, D09 from **2 to 3**, and D06 *down* from **5 to 4**, while D04 and D07 were
+    unchanged. A systematic bias could have been corrected after the fact; noise could not.
+  - **Fix.** `src/core/retrieve.examples_by_id()` resolves ids back to their text from the
+    train-only grounding corpus at judge time, rather than duplicating evidence payloads into
+    `dev_drafts.jsonl`. A missing id raises instead of yielding empty evidence, and
+    `src/eval/judge.require_evidence()` refuses to build any prompt whose evidence bodies are blank.
+    Six regression tests pin it, including a source-level scan asserting neither script can
+    construct `customer_text=""` again.
+  - **The measurements taken under the bug were discarded, not reinterpreted.** Groundedness
+    produced against an empty block is not a weaker signal, it is no signal.
+- **[P11][audit] The probe breached the per-minute limit by construction.** It made five sequential
+  judge calls with no spacing; at ~2.2k tokens each against Groq's 8,000 tokens/minute ceiling that
+  exceeds the window deterministically, and D09 failed on exactly that. `draft_dev_replies.py`
+  sleeps 8s and `warm_agent_cache.py` 40s; the probe slept not at all. It now takes `--sleep`
+  (default 12s) and waits out a per-minute limit using `src/eval/quota.classify()` before retrying
+  the same item, rather than recording a failure and moving on.
+  - Post-fix: **5/5 succeeded, 0 failures, 0 schema repairs**, all scores in range, ids mapping
+    correctly, ~2,217 tokens/call. The 15-item run extrapolates to ~33.3k tokens (up from ~27k,
+    because the prompts now carry real evidence), still inside the 200k/day free tier.
+  - Replaying the four cached items reproduced **identical** judgements, which is the expected
+    consequence of temperature 0 plus prompt-keyed caching and is worth having checked rather than
+    assumed.
+- **[P11][audit M7] Line endings protected before the next lock, not after.** `.gitattributes` now
+  carries `data/golden/*.csv -text`, so every hand-filled sheet under `data/golden/` is stored
+  byte-for-byte. `dev_human_judgments.csv` is about to be hashed into a lock file, and this is the
+  exact CRLF/autocrlf mismatch that once made the committed golden blob disagree with `golden.lock`.
+  Fixing it beforehand costs nothing; fixing it afterwards means re-locking human work.
