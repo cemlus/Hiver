@@ -46,6 +46,30 @@ def test_a_link_present_in_the_evidence_is_allowed():
     assert errors == ()
 
 
+def test_the_url_placeholder_is_rejected():
+    """Regression: the corpus redacts links to a literal <URL>, and drafts copied it through.
+
+    The placeholder is in the retrieved evidence too, so a support check calls it grounded. It
+    reaches the customer as a broken link, so it is rejected flatly.
+    """
+    errors = validate("Try these steps: <URL>. That usually clears it.",
+                      request("console keeps shutting down"), (example(),))
+    assert any("broken link" in e for e in errors)
+
+
+def test_the_url_placeholder_is_rejected_whatever_its_casing():
+    for text in ("see <url> for help", "see < URL > for help"):
+        errors = validate(text, request("help"), (example(),))
+        assert any("broken link" in e for e in errors), text
+
+
+def test_the_placeholder_in_the_evidence_alone_is_fine():
+    """Only the draft is customer-facing; evidence may carry the placeholder."""
+    evidence = example(reply="Follow the guide here: <URL>")
+    errors = validate("Recalibrate the controller in Settings.", request("stick drift"), (evidence,))
+    assert errors == ()
+
+
 def test_invented_refund_amount_is_rejected():
     errors = validate("We can refund you $49.99 for that order.", request("I want my money back"),
                       (example(),))

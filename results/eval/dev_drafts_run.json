@@ -1,5 +1,5 @@
 {
-  "started_utc": "2026-09-17T19:51:37+00:00",
+  "started_utc": "2026-09-18T04:32:40+00:00",
   "model": "groq/qwen/qwen3.8-27b",
   "prompt_versions": {
     "routing": "routing_v1",
@@ -13,8 +13,8 @@
   "drafted": 15,
   "escalated": 24,
   "failed_validation": 1,
-  "tokens": 15517,
+  "tokens": 5440,
   "quota_waits": [],
   "failures": [],
-  "finished_utc": "2026-09-17T19:54:39+00:00"
+  "finished_utc": "2026-09-18T04:34:02+00:00"
 }

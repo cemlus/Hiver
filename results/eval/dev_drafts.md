@@ -10,13 +10,13 @@ Model `groq/qwen/qwen3.8-27b`, routing prompt `routing_v1`, draft prompt `draft_
 |---|---|---|---|---|---|---|
 | D01 | yes | `ACCOUNT_SPECIFIC` | 0 | 0 | — | — |
 | D02 | yes | `STEPS_FAILED` | 0 | 0 | — | — |
-| D03 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 1 | Hi there, sorry about the frustration. For the shutdowns, try these steps: <URL>. Also, check if your console is set to auto-update, as that may be ca | — |
+| D03 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 2 | Hi there, sorry to hear your Xbox is acting up. Are you part of the preview program? Also, check if your console is set to auto-update, as that might  | — |
 | D04 | no | `GENERAL_INFO` | 5 | 1 | Hi there! Sorry to hear you're having trouble with your Gamerscore. Could you please send us a screenshot of your profile page showing the issue? This | — |
 | D05 | yes | `ACCOUNT_SPECIFIC` | 0 | 0 | — | — |
 | D06 | no | `GENERAL_INFO` | 5 | 1 | Hi there! You can still play your single-player games after Gold expires. However, you will need an active subscription to play online multiplayer on  | — |
 | D07 | no | `GENERAL_INFO` | 5 | 1 | Hi there! Yes, your Xbox will be ready to use as soon as it arrives. You can start playing right away. | — |
 | D08 | yes | `HIGH_ANGER` | 0 | 0 | — | — |
-| D09 | no | `GENERAL_INFO` | 5 | 1 | Hi there! You can usually find details about what's included in a game update by checking the game's store page or the developer's official news feed. | — |
+| D09 | no | `GENERAL_INFO` | 5 | 2 | Hi! To see what's in a game update, check the game's store page on your Xbox. Look for the 'Patch Notes' or 'What's New' section under the game title. | — |
 | D10 | yes | `ACCOUNT_SPECIFIC` | 0 | 0 | — | — |
 | D11 | yes | `BILLING_DISPUTE` | 0 | 0 | — | — |
 | D12 | yes | `ACCOUNT_SPECIFIC` | 0 | 0 | — | — |
@@ -26,11 +26,11 @@ Model `groq/qwen/qwen3.8-27b`, routing prompt `routing_v1`, draft prompt `draft_
 | D16 | no | `GENERAL_INFO` | 3 | 1 | Hi there! We don't have specific details on the current regional availability for Game Pass rewards or prize draws in our records. Please check the of | — |
 | D17 | yes | `REPEAT_CONTACT` | 0 | 0 | — | — |
 | D18 | yes | `ACCOUNT_SPECIFIC` | 0 | 0 | — | — |
-| D19 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 1 | Thanks for confirming. Since this is specific to 360 games, let's try clearing the cache on your console and resetting your router/modem: <URL> | — |
-| D20 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 1 | Hi! Let's try the steps here: <URL> to get your game installed. If that doesn't work, please power cycle your console: <URL> and let us know if the is | — |
+| D19 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 2 | Thanks for clarifying. Since this is specific to 360 games, let's try clearing the local Xbox 360 storage in Settings > System > Storage, then power c | — |
+| D20 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 2 | Hi there! Could you try power cycling your console and let us know if the issue persists? This often resolves installation errors. | — |
 | D21 | no | `ROUTINE_TROUBLESHOOTING` | 5 | 1 | Hey! To help troubleshoot the OneDrive upload issue, please try a full power cycle of your console and router. Also, could you DM us a screenshot of y | — |
 | D22 | no | `GENERAL_INFO` | 5 | 1 | Glad to hear the purchases are going through now! Thanks for the update. | — |
-| D23 | no | `GENERAL_INFO` | 5 | 1 | Hi there! For questions about refunding a gifted game, please reach out to our live chat team: <URL> They can review the specific transaction and assi | — |
+| D23 | no | `GENERAL_INFO` | 5 | 2 | Hi there! For questions about refunding a gifted game, please reach out to our live chat team. They can review the specific transaction and assist you | — |
 | D24 | no | `GENERAL_INFO` | 0 | 1 | We're here to help! Please share a few more details about the issue you're facing so we can assist you better. | — |
 | D25 | yes | `REPLY_FAILED_CHECKS` | 0 | 2 | — | unsupported troubleshooting: the reply gives steps but no evidence was retrieved to suppor |
 | D26 | yes | `STEPS_FAILED` | 0 | 0 | — | — |

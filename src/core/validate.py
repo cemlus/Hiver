@@ -3,7 +3,7 @@
 Grounding rule (set by the project owner): a substantive claim is grounded when it is supported by
 the customer conversation/context **and/or** the retrieved evidence. Paraphrase and synthesis across
 several retrieved examples are fine, and a claim does NOT have to appear verbatim in any one
-retrieved reply. What is rejected is the genuinely unsupported: invented links, money amounts
+retrieved reply. What is rejected is the genuinely unsupported: invented links, a redaction placeholder copied out of the evidence, money amounts
 nobody mentioned, troubleshooting offered with no evidence behind it, a canned DM deflection, and
 steps the customer has already reported trying.
 
@@ -16,6 +16,7 @@ import re
 
 from src.contracts import RetrievedExample, SupportRequest
 
+PLACEHOLDER_RE = re.compile(r"<\s*url\s*>", re.I)
 URL_RE = re.compile(r"https?://[^\s<>\"')]+|\b(?:www\.)[^\s<>\"')]+", re.I)
 MONEY_RE = re.compile(r"(?:[$£€]\s?\d+(?:[.,]\d+)?|\b\d+(?:[.,]\d+)?\s?(?:usd|gbp|eur|dollars|pounds)\b)", re.I)
 DM_RE = re.compile(r"\b(?:dm|direct message|private message|message us|pm us)\b", re.I)
@@ -69,6 +70,10 @@ def validate(draft: str, request: SupportRequest, retrieved: tuple[RetrievedExam
         if _normalise(url) not in known:
             errors.append(f"unsupported link: {url} appears in neither the conversation nor the "
                           "retrieved evidence")
+
+    if PLACEHOLDER_RE.search(text):
+        errors.append("broken link: the draft contains the literal <URL> placeholder, which is the "
+                      "corpus's redaction token, not an address a customer can open")
 
     for amount in MONEY_RE.findall(text):
         if amount.lower().replace(" ", "") not in evidence.replace(" ", ""):

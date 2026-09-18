@@ -466,3 +466,33 @@ comes from. It will be trimmed to the best 10–15 for submission.
   claimed the file enforced the no-langgraph rule; it had never been written. It exists now, and
   also asserts that importing `src.core.retrieve` does not pull in torch or sentence-transformers,
   since the embedding model is loaded lazily.
+- **[P10] The link rule missed the corpus's own redaction placeholder.** The Phase 10 validator
+  rejected invented links by matching `http(s)://`, so it never saw `<URL>` — the token the cleaner
+  substitutes for every link (`src/dataprep/text.py:154`, 2,571 occurrences in the grounding
+  corpus). Five of the fifteen dev drafts copied it straight through ("try these steps:
+  `<URL>`"), which reaches a customer as a broken link.
+  - **The first count of this defect was wrong, and the report is why.** It was reported as four of
+    fifteen; the true figure is five. `dev_drafts.md` truncates each draft cell to 150 characters
+    and eleven of the fifteen drafts hit that cap, so D09's placeholder sat past the cut and a grep
+    of the report could not see it. The full count only became visible when exactly five items moved
+    from one draft attempt to two after the fix — and since the placeholder rule was the only
+    validator change, nothing else could have caused those revises.
+  - **Why a grounding check could not have caught it.** The placeholder is in the retrieved evidence
+    as well as the draft, so "is this claim supported by the evidence?" answers *yes*. The
+    placeholder can only be rejected flatly, independently of support — which is what the fix does.
+  - **The fix is one rule**, `PLACEHOLDER_RE` in `src/core/validate.py`: a literal `<URL>` in a
+    customer-facing draft is a broken link, whatever its casing or spacing. The draft prompt was
+    deliberately **not** changed: the correction travels through the validator and the existing
+    revise path, which is the behaviour Phase 10 was built to have, and exercising it is better
+    evidence than suppressing the symptom upstream.
+  - **The four drafts were not edited by hand.** The full 40-item dev run was repeated; the cached
+    first attempts came back identical, now failed validation, and were revised or escalated by the
+    ordinary path.
+  - Regression tests pin the exact case, its casing and spacing variants, and the converse: a
+    placeholder in the *evidence* alone is fine, because only the draft is customer-facing.
+  - **Verified by repeating the whole 40-item dev run.** The placeholder now appears in zero drafts.
+    The five affected items were revised through the ordinary path and all five passed on the second
+    attempt, so the fix cost coverage nothing: still 15 drafted, 24 escalated by policy, 1 escalated
+    after failing validation. Every routing and escalation decision is unchanged, D25 still escalates
+    with `REPLY_FAILED_CHECKS`, and the rerun cost 5,440 tokens against the original 15,517 because
+    only the revised drafts needed live calls.
