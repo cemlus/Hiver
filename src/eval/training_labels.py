@@ -9,7 +9,8 @@ Three sources exist in the repository, none of them independently human-annotate
 | `data/golden/dev_labeling_sheet.csv` | 40 | holdout, ChatGPT-drafted and approved by the project owner |
 
 Any model trained on this is therefore **weakly supervised**, and its ceiling is the quality of
-these labels. `tests/test_training_labels.py` asserts the corpus never touches a golden record.
+these labels. The corpus never touches a golden record: an assertion below enforces it and
+`tests/test_training_labels.py` pins it.
 
 Tie-break example ids in the spec are deliberately excluded: they illustrate a rule, not a settled
 label for one message.

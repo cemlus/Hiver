@@ -15,3 +15,6 @@ data/raw/*
 # Assignment brief (not ours to redistribute)
 *.pdf
 logs/
+
+# --limit smoke runs of the evaluation runner: diagnostics, never deliverables.
+results/eval/*smoke*

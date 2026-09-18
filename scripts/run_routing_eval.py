@@ -9,6 +9,7 @@ Neither file is ever written to, and nothing here tunes anything: the golden set
 Writes:
   results/eval/routing_baselines.md          the report
   results/eval/predictions/<system>.jsonl    one AgentOutput per line, per system
+  (a --limit smoke run writes to *_smoke<N> paths and never touches the above)
   results/eval/routing_baselines_run.json    run manifest (versions, hashes, provenance, timing)
 """
 from __future__ import annotations
@@ -79,6 +80,23 @@ def metric_table(results: list[RoutingResult]) -> list[str]:
     return lines + [""]
 
 
+def require_golden_lock() -> None:
+    """Refuse to score a golden set that no longer matches its lock.
+
+    The manifest used to record the lock digest without ever comparing it, so a modified sheet
+    would have been scored and stamped with a stale but plausible hash. PLAN.md always claimed
+    run_eval refused on a mismatch; now it does.
+    """
+    sheet, lock = GOLDEN / "golden_labeling_sheet.csv", GOLDEN / "golden.lock"
+    if not lock.exists():
+        sys.exit(f"{lock.name} is missing: the golden labels must be locked before evaluation.")
+    digest = hashlib.sha256(sheet.read_bytes()).hexdigest()
+    expected = lock.read_text().split()[0]
+    if digest != expected:
+        sys.exit(f"{sheet.name} does not match {lock.name} ({digest[:12]} != {expected[:12]}): "
+                 "the locked golden labels changed. Refusing to evaluate against altered gold.")
+
+
 def escalation_direction(gold, predictions) -> tuple[int, int]:
     """(over-escalations, under-escalations) for one system, matched by request_id."""
     truth = {e.request.request_id: e.label_escalate for e in gold}
@@ -131,7 +149,8 @@ def how_to_read(results, system_predictions, final) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--systems", default=",".join(BASELINES), help="comma-separated system names")
+    parser.add_argument("--systems", default=",".join([*BASELINES, "agent"]),
+                        help="comma-separated system names; the agent is included by default")
     parser.add_argument("--boot", type=int, default=10_000, help="bootstrap resamples")
     parser.add_argument("--limit", type=int, default=0, help="first N items only (smoke tests)")
     parser.add_argument("--sleep", type=float, default=32.0,
@@ -143,13 +162,22 @@ def main() -> None:
         sys.exit(f"unknown system(s): {unknown}. Available: {sorted(BASELINES)}")
 
     cfg = load_config()
+    require_golden_lock()
+    report_name = f"routing_baselines_smoke{args.limit}.md" if args.limit else "routing_baselines.md"
+    manifest_name = (f"routing_baselines_smoke{args.limit}_run.json" if args.limit
+                     else "routing_baselines_run.json")
     started = datetime.now(timezone.utc)
     final = load_examples(GOLDEN / "golden_final.csv")
     human = load_examples(GOLDEN / "golden_labeling_sheet.csv")
     if args.limit:
+        # A --limit run is a smoke test. It once replaced the committed 200-item table with a
+        # 2-item one, recoverable only from git, so partial runs get their own filenames.
         final, human = final[: args.limit], human[: args.limit]
     agent_manifest: dict = {}
-    (OUT / "predictions").mkdir(parents=True, exist_ok=True)
+    # A smoke run must not overwrite the authoritative predictions either: isolating only the
+    # report filenames still let --limit clobber results/eval/predictions/*.jsonl.
+    predictions_dir = OUT / (f"predictions_smoke{args.limit}" if args.limit else "predictions")
+    predictions_dir.mkdir(parents=True, exist_ok=True)
 
     results, human_results, slice_results, timings = [], [], {}, {}
     system_predictions: dict = {}
@@ -186,7 +214,7 @@ def main() -> None:
         else:
             predictions = BASELINES[name](final)
         timings[name] = round(time.time() - t0, 3)
-        with (OUT / "predictions" / f"{name}.jsonl").open("w", encoding="utf-8") as fh:
+        with (predictions_dir / f"{name}.jsonl").open("w", encoding="utf-8") as fh:
             for p in predictions:
                 fh.write(p.model_dump_json() + "\n")
         results.append(evaluate(final, predictions, name, n_boot=args.boot, seed=cfg["seed"]))
@@ -248,7 +276,7 @@ def main() -> None:
               "those labels.**", ""]
 
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "routing_baselines.md").write_text("\n".join(lines), encoding="utf-8")
+    (OUT / report_name).write_text("\n".join(lines), encoding="utf-8")
 
     manifest = {
         "run": "routing_baselines",
@@ -270,7 +298,7 @@ def main() -> None:
         "must_escalate_limitation": MUST_ESCALATE_LIMITATION,
         "agent": agent_manifest,
     }
-    (OUT / "routing_baselines_run.json").write_text(json.dumps(manifest, indent=2) + "\n",
+    (OUT / manifest_name).write_text(json.dumps(manifest, indent=2) + "\n",
                                                     encoding="utf-8")
     print(f"wrote {(OUT / 'routing_baselines.md').relative_to(ROOT)} and the run manifest")
     for r in results:

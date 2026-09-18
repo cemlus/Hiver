@@ -93,8 +93,12 @@ in [`results/reconstruction_samples.md`](results/reconstruction_samples.md).
   - Conversation state: accuracy and macro-F1.
   - Intent: macro-F1 conditional on intent-bearing gold states, plus per-intent F1 and a
     confusion matrix.
-  - Escalation: precision and recall, plus **must-escalate recall** (gold risk high or reason
-    SECURITY / SAFETY_LEGAL / BILLING_DISPUTE).
+  - Escalation: precision and recall, plus **`must_escalate_recall_cue_blind`** — a **proxy**, not
+    the metric originally specified. The locked sheet carries no cue, risk or reason columns, so
+    risk is derived by running the frozen policy cue-blind over the gold intent, which yields the
+    intent's default risk. Items that would reach high risk only through the SECURITY /
+    SAFETY_LEGAL / BILLING_DISPUTE cue rules cannot be identified, so the proxy **under-counts** the
+    true must-escalate set and must never be quoted as the specified metric.
   - **Joint routing correctness:** state, primary intent (when one is due) and escalate all
     correct at once.
 - **Evidence status.** The 150-exchange coding sample in `data/taxonomy/` is taxonomy discovery

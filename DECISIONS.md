@@ -582,3 +582,40 @@ comes from. It will be trimmed to the best 10–15 for submission.
   byte-for-byte. `dev_human_judgments.csv` is about to be hashed into a lock file, and this is the
   exact CRLF/autocrlf mismatch that once made the committed golden blob disagree with `golden.lock`.
   Fixing it beforehand costs nothing; fixing it afterwards means re-locking human work.
+- **[P11][audit H3] The golden lock is now enforced, not merely recorded.**
+  `scripts/run_routing_eval.py` wrote `golden_lock_sha256` into the run manifest without ever
+  comparing it to the sheet, so an altered golden set would have been scored and stamped with a
+  stale but plausible hash. `PLAN.md:192` had claimed for weeks that the runner "refuses to run on a
+  mismatch"; it did not. `require_golden_lock()` now compares and exits. Verified against a
+  throwaway copy: appending one row produced
+  `does not match golden.lock (13dbdd28 != 792caedc)`. The real sheet was never touched.
+- **[P11][audit H1] The agent is evaluated by default.** `--systems` defaulted to `",".join(
+  BASELINES)`, and `agent` is not a baseline, so a default invocation produced a complete-looking
+  report with the system under test silently missing. The default now includes it.
+  - The first regression test for this was **worthless and I replaced it**: it regex-matched
+    `--systems", default=([^,]+),`, which stops at the comma inside `",".join(...)` and captured a
+    lone quote, so it could never pass regardless of behaviour. The test now builds the runner's
+    real argparse parser and asserts on `get_default("systems")`. Asserting on source text is how
+    the next bug hides.
+- **[P11][audit H2] Smoke runs cannot reach authoritative artifacts — and the first fix was
+  incomplete.** `--limit` once replaced the committed 200-item report with a 2-item one. The fix
+  isolated the report and manifest filenames, and **I then ran `--limit 4` to verify it and
+  clobbered all eight prediction files, `agent.jsonl` included** — the exact artifact kept
+  byte-identical through Phase 10. The predictions path was still unconditional, and the whole suite
+  passed while it happened.
+  - Restored byte-identical from the commit (`280c6061`), then `predictions_dir` was isolated too.
+  - Now proven behaviourally rather than by source scan: the combined hash of
+    `predictions/*.jsonl` is unchanged across a `--limit 4` run, and smoke output lands in
+    `predictions_smoke4/`. A further test asserts every committed prediction file still holds 200
+    rows, so a truncated artifact fails CI instead of being noticed months later.
+  - The lesson is the one the audit already made: a test that greps source proves the spelling, not
+    the behaviour.
+- **[P11][audit H4] The README's must-escalate definition matched nothing that is computed.** It
+  described the originally specified metric (gold risk high *or* reason SECURITY / SAFETY_LEGAL /
+  BILLING_DISPUTE) — which is not computable, because the locked sheet has no cue, risk or reason
+  columns. It now names `must_escalate_recall_cue_blind` and states that it under-counts.
+- **[P11][audit H6] `tests/test_training_labels.py` now exists.** `src/eval/training_labels.py`
+  claimed the file asserted the corpus never touches a golden record; the file had never been
+  committed. The guarantee itself always held via an inline assertion, and that assertion is now
+  pinned by six tests, including one checking that `golden_sample_key.csv` covers every row of the
+  locked sheet — the disjointness check is only as good as the id list it compares against.
